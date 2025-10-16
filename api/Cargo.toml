@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+actix-cors = "0.7.1"
 actix-web = "4"
 diesel = {version = "2.2.7", features=["postgres"]}
 diesel-derive-enum = { version = "3.0.0-beta.1", features = ["postgres"] }
