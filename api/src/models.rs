@@ -12,3 +12,12 @@ pub struct Embedding {
     pub word: String,
     pub vector: Vector,
 }
+
+#[derive(Queryable, Selectable)]
+#[diesel(table_name = schema::user)]
+#[diesel(check_for_backend(diesel::pg::Pg))]
+#[derive(Debug)]
+pub struct User {
+    pub id: i32,
+    pub name: String,
+}
