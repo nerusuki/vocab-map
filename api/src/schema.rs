@@ -29,6 +29,16 @@ diesel::table! {
 diesel::table! {
     use diesel::sql_types::*;
     use pgvector::sql_types::*;
+
+    user_vocab (user, vocab) {
+        user -> Int4,
+        vocab -> Int4,
+    }
+}
+
+diesel::table! {
+    use diesel::sql_types::*;
+    use pgvector::sql_types::*;
     use super::sql_types::Language;
 
     vocab (id) {
@@ -38,4 +48,7 @@ diesel::table! {
     }
 }
 
-diesel::allow_tables_to_appear_in_same_query!(embeddings, user, vocab,);
+diesel::joinable!(user_vocab -> user (user));
+diesel::joinable!(user_vocab -> vocab (vocab));
+
+diesel::allow_tables_to_appear_in_same_query!(embeddings, user, user_vocab, vocab,);
