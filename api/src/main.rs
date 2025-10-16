@@ -19,6 +19,7 @@ async fn main() -> std::io::Result<()> {
             )
             .service(controllers::auth::create_scope())
             .service(controllers::embeddings::create_scope())
+            .service(controllers::vocab::create_scope())
     })
     .bind(("localhost", 8080))?
     .run()
