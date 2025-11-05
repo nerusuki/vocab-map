@@ -110,7 +110,8 @@ pub fn add_user_from_words(words: Vec<String>, user_id: i32) -> Result<String, &
 
     let connection = &mut db::establish_connection();
 
-    let Ok(mut words_to_add) = services::embeddings::predict_from_words(words, 1, true) else {
+    let Ok(mut words_to_add) = services::embeddings::predict_from_words(words, 1, true, user_id)
+    else {
         return Err("Could not predict word");
     };
 

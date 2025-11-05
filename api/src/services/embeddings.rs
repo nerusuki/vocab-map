@@ -1,4 +1,5 @@
 use crate::models::Embedding;
+use crate::schema::user_vocab;
 use crate::schema::vocab;
 use crate::{db, schema};
 
@@ -51,6 +52,7 @@ pub fn predict_from_words(
     words: Vec<String>,
     count: i64,
     vocab_only: bool,
+    user_id: i32,
 ) -> Result<Vec<String>, &'static str> {
     use self::schema::embeddings::dsl::*;
 
@@ -76,6 +78,11 @@ pub fn predict_from_words(
 
     let mut query = embeddings
         .left_join(vocab::table.on(word.ilike(vocab::word)))
+        .left_join(
+            user_vocab::table.on(vocab::id
+                .eq(user_vocab::vocab)
+                .and(user_vocab::user.eq(user_id))),
+        )
         .order_by(vector.l2_distance(Vector::from(sum)))
         .limit(count)
         .select(Embedding::as_select())
@@ -85,7 +92,7 @@ pub fn predict_from_words(
         query = query.filter(vocab::id.is_not_null());
     }
 
-    query = query.filter(diesel::dsl::not(vocab::word.eq_any(words)));
+    query = query.filter(user_vocab::user.is_null());
 
     let Ok(mut related_words) = query.load(connection) else {
         return Err("Could not find words");
