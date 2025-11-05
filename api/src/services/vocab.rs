@@ -1,5 +1,6 @@
 use std::vec;
 
+use crate::db::Language;
 use crate::models::{Embedding, Vocab};
 use crate::schema::user_vocab::{self};
 use crate::{db, schema, services};
@@ -110,19 +111,30 @@ pub fn add_user_from_words(words: Vec<String>, user_id: i32) -> Result<String, &
 
     let connection = &mut db::establish_connection();
 
-    let Ok(mut words_to_add) = services::embeddings::predict_from_words(words, 1, true, user_id)
+    let Ok(mut words_to_add) = services::embeddings::predict_from_words(words, 1, false, user_id)
     else {
         return Err("Could not predict word");
     };
 
     let word_to_add = words_to_add.pop().unwrap();
 
-    let Ok(word) = schema::vocab::table
+    let word = match schema::vocab::table
         .filter(schema::vocab::word.eq(&word_to_add))
         .select(Vocab::as_select())
         .first(connection)
-    else {
-        return Err("Could not find word");
+    {
+        Ok(word) => word,
+        Err(_) => {
+            let result: Vocab = insert_into(schema::vocab::table)
+                .values((
+                    schema::vocab::word.eq(&word_to_add),
+                    schema::vocab::lang.eq(Language::En),
+                ))
+                .get_result(connection)
+                .unwrap();
+
+            result
+        }
     };
 
     let result = insert_into(user_vocab)
