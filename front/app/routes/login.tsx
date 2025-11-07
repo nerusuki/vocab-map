@@ -89,7 +89,7 @@ export default function Login({ loaderData }: Route.ComponentProps) {
         <form method="POST">
           <Field name="username" label="Username" />
           <Field name="password" type="password" label="Password" />
-          <Submit className="w-full">Login</Submit>
+          <Submit className="w-full mt-4">Login</Submit>
         </form>
       </Form>
     </div>
