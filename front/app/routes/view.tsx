@@ -63,14 +63,14 @@ export default function View({ loaderData }: Route.ComponentProps) {
     }
   }, []);
 
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const handlePointerDown = (e: React.MouseEvent) => {
     if (e.button === 0 && e.target === canvasRef.current) {
       setIsPanning(true);
       setPanStart({ x: e.clientX - camera.x, y: e.clientY - camera.y });
     }
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const handlePointerMove = (e: React.MouseEvent) => {
     if (isPanning) {
       setCamera((prev) => ({
         ...prev,
@@ -80,7 +80,7 @@ export default function View({ loaderData }: Route.ComponentProps) {
     }
   };
 
-  const handleMouseUp = () => {
+  const handlePointerUp = () => {
     setIsPanning(false);
   };
 
@@ -182,18 +182,18 @@ export default function View({ loaderData }: Route.ComponentProps) {
   };
 
   return (
-    <div className="flex h-screen flex-col bg-background">
+    <div className="flex h-screen flex-col bg-background touch-none">
       <SearchBar onAddWord={addWord} />
       <Toaster />
 
       <div className="flex flex-1 overflow-hidden">
         <div
-          className="flex-1 relative overflow-hidden"
+          className="flex-1 relative overflow-hidden touch-none"
           ref={canvasRef}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
+          onPointerUp={handlePointerUp}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerLeave={handlePointerUp}
           style={{ cursor: isPanning ? "grabbing" : "grab" }}
         >
           <div
