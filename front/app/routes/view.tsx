@@ -45,10 +45,15 @@ export default function View({ loaderData }: Route.ComponentProps) {
       const zoomSpeed = 0.001;
       const delta = -e.deltaY * zoomSpeed;
 
-      setCamera((prev) => ({
-        ...prev,
-        zoom: Math.max(0.5, Math.min(3, prev.zoom + delta)),
-      }));
+      setCamera((prev) => {
+        const zoom = Math.max(0.5, Math.min(3, prev.zoom + delta));
+        return {
+          ...prev,
+          x: e.clientX - (e.clientX - prev.x) * (zoom / prev.zoom),
+          y: e.clientY - (e.clientY - prev.y) * (zoom / prev.zoom),
+          zoom,
+        };
+      });
     };
 
     const canvas = canvasRef.current;
