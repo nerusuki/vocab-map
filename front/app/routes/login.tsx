@@ -47,7 +47,7 @@ export async function action({ request }: Route.ActionArgs) {
     })
     .catch((error) => {
       if (error) {
-        console.log(error.response.data);
+        console.log(error);
       }
     });
 
