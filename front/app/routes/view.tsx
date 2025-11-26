@@ -97,9 +97,6 @@ export default function View({ loaderData }: Route.ComponentProps) {
   };
 
   const update = async () => {
-    const canvasWidth = (canvasRef.current?.clientWidth || 1000) * 2 - 150;
-    const canvasHeight = (canvasRef.current?.clientHeight || 600) * 2 - 50;
-
     const response = await axios
       .get<Word[]>(import.meta.env.VITE_API_URL + "/vocab/projected", {
         headers: { Authorization: `Bearer ${token}` },
@@ -109,6 +106,13 @@ export default function View({ loaderData }: Route.ComponentProps) {
       });
     if (response) {
       const words = response.data;
+
+      const canvasSizeMultiplier = 1 + Math.sqrt(words.length) / 10;
+      const canvasWidth =
+        (canvasRef.current?.clientWidth || 1000) * canvasSizeMultiplier - 150;
+      const canvasHeight =
+        (canvasRef.current?.clientHeight || 600) * canvasSizeMultiplier - 50;
+
       const smallestX = words.reduce(
         (prev, cur) => (cur.x < prev ? cur.x : prev),
         0xffffffff,
