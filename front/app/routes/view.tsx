@@ -208,8 +208,33 @@ export default function View({ loaderData }: Route.ComponentProps) {
     update();
   };
 
+  const deleteWords = async () => {
+    if (selectedWords) {
+      const response = await axios.post(
+        import.meta.env.VITE_API_URL + "/vocab/delete",
+        { words: [...selectedWords] },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
+      toast(response.data.message);
+      update();
+      setSelectedWords(new Set());
+    }
+  };
+
+  const onKeyUp = (e: any) => {
+    if (e.keyCode == 46) {
+      deleteWords();
+    }
+  };
+
   return (
-    <div className="flex h-screen flex-col bg-background touch-none">
+    <div
+      className="flex h-screen flex-col bg-background touch-none"
+      onKeyUp={onKeyUp}
+    >
       <SearchBar onAddWord={addWord} />
       <Toaster />
 
