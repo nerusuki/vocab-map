@@ -59,6 +59,10 @@ pub fn get_user_projected(user_id: i32) -> Result<Vec<ProjectedWord>, &'static s
 
     let word_count = words.len();
 
+    if word_count == 0 {
+        return Ok(vec![]);
+    }
+
     let dim = 300;
     let values = words.iter().map(|x| x.vector.to_vec()).flatten().collect();
 
