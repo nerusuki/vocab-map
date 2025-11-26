@@ -57,13 +57,21 @@ pub fn get_user_projected(user_id: i32) -> Result<Vec<ProjectedWord>, &'static s
         return Err("Could not load vocab");
     };
 
+    let word_count = words.len();
+
     let dim = 300;
     let values = words.iter().map(|x| x.vector.to_vec()).flatten().collect();
 
     let values: Array2<f32> = Array2::from_shape_vec((words.len(), dim), values).unwrap();
 
+    let perplexity: f32 = if word_count > 1 {
+        12.0 * (word_count as f32) / 250.0
+    } else {
+        0.0
+    };
+
     let y_2d = TSneParams::embedding_size(2)
-        .perplexity(10.0)
+        .perplexity(perplexity)
         .approx_threshold(0.3)
         .transform(values)
         .unwrap();
