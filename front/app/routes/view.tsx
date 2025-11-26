@@ -152,6 +152,29 @@ export default function View({ loaderData }: Route.ComponentProps) {
         word.y *= canvasHeight;
       });
 
+      words.forEach((word1) => {
+        words.forEach((word2) => {
+          const dx = word2.x - word1.x;
+          const dy = word2.y - word1.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          const minDistance = 100;
+
+          if (distance < minDistance) {
+            const angle = Math.atan2(dy, dx);
+            const overlap = minDistance - distance;
+            const push = overlap * 0.5;
+
+            const pushX = Math.cos(angle) * push;
+            const pushY = Math.sin(angle) * push;
+
+            word1.x -= pushX;
+            word1.y -= pushY;
+            word2.x += pushX;
+            word2.y += pushY;
+          }
+        });
+      });
+
       setWords(words);
     }
   };
