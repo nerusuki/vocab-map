@@ -2,7 +2,7 @@ use std::vec;
 
 use crate::models::{Embedding, Vocab};
 use crate::schema::user_vocab::{self};
-use crate::{db, schema};
+use crate::{db, schema, services};
 
 use diesel::dsl::insert_into;
 use diesel::prelude::*;
@@ -103,6 +103,36 @@ pub fn add_user(word: &str, user_id: i32) -> Result<&'static str, &'static str> 
     }
 
     Ok("Word added successfully")
+}
+
+pub fn add_user_from_words(words: Vec<String>, user_id: i32) -> Result<String, &'static str> {
+    use self::schema::user_vocab::dsl::*;
+
+    let connection = &mut db::establish_connection();
+
+    let Ok(mut words_to_add) = services::embeddings::predict_from_words(words, 1, true) else {
+        return Err("Could not predict word");
+    };
+
+    let word_to_add = words_to_add.pop().unwrap();
+
+    let Ok(word) = schema::vocab::table
+        .filter(schema::vocab::word.eq(&word_to_add))
+        .select(Vocab::as_select())
+        .first(connection)
+    else {
+        return Err("Could not find word");
+    };
+
+    let result = insert_into(user_vocab)
+        .values((vocab.eq(word.id), user.eq(user_id)))
+        .execute(connection);
+
+    if result.is_err() {
+        return Err("Could not insert word");
+    }
+
+    Ok(word_to_add)
 }
 
 pub fn search(search: &str) -> Result<Vec<String>, &'static str> {

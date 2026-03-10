@@ -3,6 +3,7 @@ use crate::utils::response;
 use crate::utils::token::get_user_id;
 
 use actix_web::{HttpRequest, HttpResponse, Responder, Scope, web};
+use serde::Deserialize;
 
 async fn get(req: HttpRequest) -> impl Responder {
     let Some(user_id) = get_user_id(req.headers()) else {
@@ -42,6 +43,26 @@ async fn add(req: HttpRequest) -> impl Responder {
     HttpResponse::Ok().json(response::message(result))
 }
 
+#[derive(Deserialize)]
+struct Words {
+    words: Vec<String>,
+}
+
+async fn add_from_words(params: web::Json<Words>, req: HttpRequest) -> impl Responder {
+    let words = params.into_inner().words;
+
+    let Some(user_id) = get_user_id(req.headers()) else {
+        return HttpResponse::Unauthorized().json(response::message("Unauthorized"));
+    };
+
+    let result = match vocab::add_user_from_words(words, user_id) {
+        Ok(result) => result,
+        Err(e) => return HttpResponse::InternalServerError().json(response::message(e)),
+    };
+
+    HttpResponse::Ok().json(response::message(&format!("Added word: {}", result)))
+}
+
 async fn search(req: HttpRequest) -> impl Responder {
     let word: String = req.match_info().load().unwrap();
 
@@ -57,5 +78,6 @@ pub fn create_scope() -> Scope {
         .route("", web::get().to(get))
         .route("/projected", web::get().to(get_projected))
         .route("/add/{word}", web::put().to(add))
+        .route("/add", web::post().to(add_from_words))
         .route("/search/{word}", web::get().to(search))
 }

@@ -4,7 +4,7 @@ use crate::{db, schema};
 
 use diesel::prelude::*;
 use diesel::{RunQueryDsl, SelectableHelper};
-use pgvector::VectorExpressionMethods;
+use pgvector::{Vector, VectorExpressionMethods};
 
 pub fn predict_from_word(
     word_to_predict: &str,
@@ -33,6 +33,59 @@ pub fn predict_from_word(
     if vocab_only {
         query = query.filter(vocab::id.is_not_null());
     }
+
+    let Ok(mut related_words) = query.load(connection) else {
+        return Err("Could not find words");
+    };
+
+    let mut words = vec![];
+    while let Some(w) = related_words.pop() {
+        words.push(w.word);
+    }
+    words.reverse();
+
+    Ok(words)
+}
+
+pub fn predict_from_words(
+    words: Vec<String>,
+    count: i64,
+    vocab_only: bool,
+) -> Result<Vec<String>, &'static str> {
+    use self::schema::embeddings::dsl::*;
+
+    let connection = &mut db::establish_connection();
+
+    let mut vecs = vec![];
+
+    for w in words.iter() {
+        let Ok(embedding) = embeddings
+            .filter(word.eq(w))
+            .select(Embedding::as_select())
+            .first(connection)
+        else {
+            return Err("Word not found");
+        };
+        vecs.push(embedding.vector.to_vec());
+    }
+
+    let sum = vecs
+        .into_iter()
+        .reduce(|a, b| a.iter().zip(b.iter()).map(|(&a, &b)| a + b).collect())
+        .unwrap();
+
+    let mut query = embeddings
+        .left_join(vocab::table.on(word.ilike(vocab::word)))
+        .order_by(vector.l2_distance(Vector::from(sum)))
+        .limit(count)
+        .select(Embedding::as_select())
+        .into_boxed();
+
+    if vocab_only {
+        query = query.filter(vocab::id.is_not_null());
+    }
+
+    query = query.filter(diesel::dsl::not(vocab::word.eq_any(words)));
 
     let Ok(mut related_words) = query.load(connection) else {
         return Err("Could not find words");
