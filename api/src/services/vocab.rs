@@ -4,6 +4,7 @@ use crate::models::{Embedding, Vocab};
 use crate::schema::user_vocab::{self};
 use crate::{db, schema};
 
+use diesel::dsl::insert_into;
 use diesel::prelude::*;
 use diesel::{RunQueryDsl, SelectableHelper};
 use linfa::traits::Transformer;
@@ -78,4 +79,28 @@ pub fn get_user_projected(user_id: i32) -> Result<Vec<ProjectedWord>, &'static s
     }
 
     Ok(result)
+}
+
+pub fn add_user(word: &str, user_id: i32) -> Result<&'static str, &'static str> {
+    use self::schema::user_vocab::dsl::*;
+
+    let connection = &mut db::establish_connection();
+
+    let Ok(word) = schema::vocab::table
+        .filter(schema::vocab::word.eq(word))
+        .select(Vocab::as_select())
+        .first(connection)
+    else {
+        return Err("Could not find word");
+    };
+
+    let result = insert_into(user_vocab)
+        .values((vocab.eq(word.id), user.eq(user_id)))
+        .execute(connection);
+
+    if result.is_err() {
+        return Err("Could not add word");
+    }
+
+    Ok("Word added successfully")
 }

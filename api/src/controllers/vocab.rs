@@ -28,8 +28,23 @@ async fn get_projected(req: HttpRequest) -> impl Responder {
     HttpResponse::Ok().json(result)
 }
 
+async fn add(req: HttpRequest) -> impl Responder {
+    let word: String = req.match_info().load().unwrap();
+
+    let Some(user_id) = get_user_id(req.headers()) else {
+        return HttpResponse::Unauthorized().json(response::message("Unauthorized"));
+    };
+
+    let Ok(result) = vocab::add_user(&word, user_id) else {
+        return HttpResponse::InternalServerError().json(response::message("Could not add word"));
+    };
+
+    HttpResponse::Ok().json(response::message(result))
+}
+
 pub fn create_scope() -> Scope {
     web::scope("/vocab")
         .route("", web::get().to(get))
         .route("/projected", web::get().to(get_projected))
+        .route("/add/{word}", web::put().to(add))
 }
