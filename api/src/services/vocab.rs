@@ -104,3 +104,26 @@ pub fn add_user(word: &str, user_id: i32) -> Result<&'static str, &'static str> 
 
     Ok("Word added successfully")
 }
+
+pub fn search(search: &str) -> Result<Vec<String>, &'static str> {
+    use self::schema::vocab::dsl::*;
+
+    let connection = &mut db::establish_connection();
+
+    let Ok(mut words) = vocab
+        .filter(word.ilike(format!("{}%", search)))
+        .limit(20)
+        .select(Vocab::as_select())
+        .load(connection)
+    else {
+        return Err("Could not load vocab");
+    };
+
+    let mut result_words = vec![];
+    while let Some(w) = words.pop() {
+        result_words.push(w.word);
+    }
+    result_words.reverse();
+
+    Ok(result_words)
+}

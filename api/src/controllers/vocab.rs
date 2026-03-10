@@ -42,9 +42,20 @@ async fn add(req: HttpRequest) -> impl Responder {
     HttpResponse::Ok().json(response::message(result))
 }
 
+async fn search(req: HttpRequest) -> impl Responder {
+    let word: String = req.match_info().load().unwrap();
+
+    let Ok(words) = vocab::search(&word) else {
+        return HttpResponse::InternalServerError().json(response::message("Could not find words"));
+    };
+
+    HttpResponse::Ok().json(words)
+}
+
 pub fn create_scope() -> Scope {
     web::scope("/vocab")
         .route("", web::get().to(get))
         .route("/projected", web::get().to(get_projected))
         .route("/add/{word}", web::put().to(add))
+        .route("/search/{word}", web::get().to(search))
 }
