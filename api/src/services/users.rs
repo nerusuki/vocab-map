@@ -19,10 +19,14 @@ pub fn auth(username: &str, password: &str) -> Result<String, &'static str> {
         return Err("User not found");
     };
 
-    let mut claims = BTreeMap::new();
-    claims.insert("sub", user_entity.id.to_string());
-    claims.insert("name", user_entity.name);
-    let token_str = claims.sign_with_key(&utils::token::get_key()).unwrap();
+    Ok(create_token(user_entity)
+        .sign_with_key(&utils::token::get_key())
+        .unwrap())
+}
 
-    Ok(token_str)
+fn create_token(user: User) -> BTreeMap<&'static str, String> {
+    let mut claims = BTreeMap::new();
+    claims.insert("sub", user.id.to_string());
+    claims.insert("name", user.name);
+    claims
 }
