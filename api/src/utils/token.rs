@@ -1,6 +1,7 @@
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, env};
 
 use actix_web::http::header::{HeaderMap, HeaderName};
+use dotenvy::dotenv;
 use hmac::{Hmac, Mac};
 use jwt::VerifyWithKey;
 use sha2::Sha256;
@@ -12,9 +13,14 @@ pub fn get_token(headers: &HeaderMap) -> Option<BTreeMap<String, String>> {
 
     let authorization = authorization.to_str().unwrap();
 
-    let key: Hmac<Sha256> = Hmac::new_from_slice(b"some-secret").unwrap();
     let token_str = authorization.replace("Bearer ", "");
-    return token_str.verify_with_key(&key).unwrap_or(None);
+    return token_str.verify_with_key(&get_key()).unwrap_or(None);
+}
+
+pub fn get_key() -> Hmac<Sha256> {
+    dotenv().ok();
+    let key = env::var("TOKEN_KEY").expect("TOKEN_KEY must be set");
+    Hmac::new_from_slice(key.as_bytes()).unwrap()
 }
 
 pub fn get_user_id(headers: &HeaderMap) -> Option<i32> {
