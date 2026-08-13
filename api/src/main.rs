@@ -14,11 +14,11 @@ mod utils;
 async fn main() -> std::io::Result<()> {
     let mut graph = Graph::new();
 
-    graph.add_node("aaaaa", vec![]);
-    graph.add_node("bbbbb", vec![]);
-    graph.add_node("ccccc", vec![]);
-    graph.add_node("abc", vec![1, 2]);
-    graph.add_node("asdfgh", vec![]);
+    graph.add_node(1, "aaaaa", vec![]);
+    graph.add_node(2, "bbbbb", vec![]);
+    graph.add_node(3, "ccccc", vec![]);
+    graph.add_node(4, "abc", vec![1, 2]);
+    graph.add_node(5, "asdfgh", vec![]);
 
     graph.add_edge(3, 5);
 

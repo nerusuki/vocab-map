@@ -1,6 +1,7 @@
 use std::vec;
 
 use crate::db::Language;
+use crate::graph::Graph;
 use crate::models::{Embedding, Vocab};
 use crate::schema::user_vocab::{self};
 use crate::{db, schema, services};
@@ -11,29 +12,58 @@ use diesel::{RunQueryDsl, SelectableHelper};
 use linfa::traits::Transformer;
 use linfa_tsne::TSneParams;
 use ndarray::Array2;
+use pgvector::{Vector, VectorExpressionMethods};
 
 pub fn get_user(user_id: i32) -> Result<Vec<String>, &'static str> {
+    let Ok(mut words) = self::get_by_user(user_id) else {
+        return Err("Could not load vocab");
+    };
+
+    Ok(words.into_iter().map(|w| w.word).collect())
+}
+
+pub fn get_user_graph(user_id: i32) -> Result<Graph, &'static str> {
+    let Ok(words) = self::get_by_user(user_id) else {
+        return Err("Could not load vocab");
+    };
+
+    let mut graph = Graph::new();
+    for word in words {
+        graph.add_node(word.id.cast_unsigned(), word.word.as_str(), vec![]);
+    }
+
+    Ok(graph)
+}
+
+fn get_by_user(user_id: i32) -> Result<Vec<Vocab>, diesel::result::Error> {
     use self::schema::vocab::dsl::*;
 
     let connection = &mut db::establish_connection();
 
-    let Ok(mut words) = vocab
+    vocab
         .inner_join(user_vocab::table.on(id.eq(user_vocab::vocab)))
         .filter(user_vocab::user.eq(user_id))
         .select(Vocab::as_select())
         .load(connection)
-    else {
-        return Err("Could not load vocab");
-    };
-
-    let mut result_words = vec![];
-    while let Some(w) = words.pop() {
-        result_words.push(w.word);
-    }
-    result_words.reverse();
-
-    Ok(result_words)
 }
+
+/*fn get_distances_by_user(user_id: i32) -> Result<Vec<(Vocab, f32)>, diesel::result::Error> {
+    //use self::schema::vocab::dsl::*;
+    use self::schema::embeddings;
+    use self::schema::vocab;
+
+    let connection = &mut db::establish_connection();
+
+    let result = vocab::table
+        .inner_join(user_vocab::table.on(vocab::id.eq(user_vocab::vocab)))
+        .filter(user_vocab::user.eq(user_id))
+        .select((
+            vocab::id,
+            vocab::word,
+            embeddings::vector.l2_distance(Vector::from(sum)),
+        ))
+        .load(connection);
+}*/
 
 #[derive(serde::Serialize)]
 pub struct ProjectedWord {
