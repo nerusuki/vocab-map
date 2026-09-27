@@ -4,8 +4,8 @@ use crate::{repository, util};
 use jwt::SignWithKey;
 use std::collections::BTreeMap;
 
-pub fn auth(username: &str, password: &str) -> Result<String, &'static str> {
-    let user = repository::user::get_by_name(username)?;
+pub async fn auth(username: &str, password: &str) -> Result<String, &'static str> {
+    let user = repository::user::get_by_name(username).await?;
 
     Ok(create_token(user)
         .sign_with_key(&util::token::get_key())

@@ -1,16 +1,21 @@
 use crate::repository;
 
-pub fn predict_from_word(word: &str, count: i64, vocab_only: bool) -> Result<Vec<String>, &str> {
-    let embedding = repository::embedding::get_by_word(word)?;
+pub async fn predict_from_word(
+    word: &str,
+    count: i64,
+    vocab_only: bool,
+) -> Result<Vec<String>, &str> {
+    let embedding = repository::embedding::get_by_word(word).await?;
     return repository::embedding::get_closest_words(
         embedding.vector.as_slice(),
         count,
         vocab_only,
         None,
-    );
+    )
+    .await;
 }
 
-pub fn predict_from_words(
+pub async fn predict_from_words(
     words: Vec<String>,
     count: i64,
     vocab_only: bool,
@@ -19,13 +24,13 @@ pub fn predict_from_words(
     let mut vecs = vec![];
 
     for word in words.iter() {
-        let embedding = repository::embedding::get_by_word(word)?;
+        let embedding = repository::embedding::get_by_word(word).await?;
         vecs.push(embedding.vector.to_vec());
     }
 
     let sum = self::sum_vecs(&vecs);
 
-    return repository::embedding::get_closest_words(&sum, count, vocab_only, Some(user_id));
+    return repository::embedding::get_closest_words(&sum, count, vocab_only, Some(user_id)).await;
 }
 
 fn sum_vecs(vecs: &[Vec<f32>]) -> Vec<f32> {

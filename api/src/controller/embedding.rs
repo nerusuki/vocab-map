@@ -17,7 +17,7 @@ async fn predict(req: HttpRequest) -> impl Responder {
     let count = params.count.unwrap_or_else(|| 30);
     let vocab_only = params.vocab.is_some();
 
-    let words = match embedding::predict_from_word(&word, count, vocab_only) {
+    let words = match embedding::predict_from_word(&word, count, vocab_only).await {
         Ok(words) => words,
         Err(e) => return HttpResponse::InternalServerError().json(response::message(e)),
     };

@@ -5,7 +5,7 @@ use crate::schema::user;
 use diesel::prelude::*;
 use diesel::{RunQueryDsl, SelectableHelper};
 
-pub fn get_by_name(name: &str) -> Result<User, &'static str> {
+pub async fn get_by_name(name: &str) -> Result<User, &'static str> {
     let connection = &mut db::establish_connection();
 
     user::table

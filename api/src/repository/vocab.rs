@@ -7,7 +7,7 @@ use diesel::dsl::{delete, insert_into};
 use diesel::prelude::*;
 use diesel::{RunQueryDsl, SelectableHelper};
 
-pub fn insert(word: &str, lang: Language) -> Result<Vocab, &'static str> {
+pub async fn insert(word: &str, lang: Language) -> Result<Vocab, &'static str> {
     let connection = &mut db::establish_connection();
 
     insert_into(vocab::table)
@@ -16,7 +16,7 @@ pub fn insert(word: &str, lang: Language) -> Result<Vocab, &'static str> {
         .or(Err("Could not insert vocab"))
 }
 
-pub fn get_by_user(user_id: i32) -> Result<Vec<Vocab>, &'static str> {
+pub async fn get_by_user(user_id: i32) -> Result<Vec<Vocab>, &'static str> {
     let connection = &mut db::establish_connection();
 
     vocab::table
@@ -27,7 +27,7 @@ pub fn get_by_user(user_id: i32) -> Result<Vec<Vocab>, &'static str> {
         .or(Err("Could not load vocab"))
 }
 
-pub fn get_by_word(word: &str) -> Result<Vocab, &'static str> {
+pub async fn get_by_word(word: &str) -> Result<Vocab, &'static str> {
     let connection = &mut db::establish_connection();
 
     vocab::table
@@ -37,7 +37,7 @@ pub fn get_by_word(word: &str) -> Result<Vocab, &'static str> {
         .or(Err("Could not find word"))
 }
 
-pub fn get_by_words(words: &[String]) -> Result<Vec<Vocab>, &'static str> {
+pub async fn get_by_words(words: &[String]) -> Result<Vec<Vocab>, &'static str> {
     let connection = &mut db::establish_connection();
 
     vocab::table
@@ -47,7 +47,7 @@ pub fn get_by_words(words: &[String]) -> Result<Vec<Vocab>, &'static str> {
         .or(Err("Could not find words"))
 }
 
-pub fn add_to_user(word_id: i32, user_id: i32) -> Result<usize, &'static str> {
+pub async fn add_to_user(word_id: i32, user_id: i32) -> Result<usize, &'static str> {
     let connection = &mut db::establish_connection();
 
     insert_into(user_vocab::table)
@@ -56,7 +56,7 @@ pub fn add_to_user(word_id: i32, user_id: i32) -> Result<usize, &'static str> {
         .or(Err("Could not add word"))
 }
 
-pub fn delete_from_user(word_ids: &[i32], user_id: i32) -> Result<usize, &'static str> {
+pub async fn delete_from_user(word_ids: &[i32], user_id: i32) -> Result<usize, &'static str> {
     let connection = &mut db::establish_connection();
 
     return delete(user_vocab::table)
@@ -66,7 +66,7 @@ pub fn delete_from_user(word_ids: &[i32], user_id: i32) -> Result<usize, &'stati
         .or(Err("Could not delete words"));
 }
 
-pub fn search(search: &str, limit: i64) -> Result<Vec<Vocab>, &'static str> {
+pub async fn search(search: &str, limit: i64) -> Result<Vec<Vocab>, &'static str> {
     let connection = &mut db::establish_connection();
 
     return vocab::table

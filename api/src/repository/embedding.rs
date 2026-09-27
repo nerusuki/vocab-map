@@ -6,7 +6,7 @@ use diesel::prelude::*;
 use diesel::{RunQueryDsl, SelectableHelper};
 use pgvector::{Vector, VectorExpressionMethods};
 
-pub fn get_by_word(word: &str) -> Result<Embedding, &'static str> {
+pub async fn get_by_word(word: &str) -> Result<Embedding, &'static str> {
     let connection = &mut db::establish_connection();
 
     embedding::table
@@ -16,7 +16,7 @@ pub fn get_by_word(word: &str) -> Result<Embedding, &'static str> {
         .or(Err("Word not found"))
 }
 
-pub fn get_closest_words(
+pub async fn get_closest_words(
     vec: &[f32],
     count: i64,
     vocab_only: bool,
@@ -47,7 +47,7 @@ pub fn get_closest_words(
     query.load(connection).or(Err("Could not find words"))
 }
 
-pub fn get_by_user(user_id: i32) -> Result<Vec<Embedding>, &'static str> {
+pub async fn get_by_user(user_id: i32) -> Result<Vec<Embedding>, &'static str> {
     let connection = &mut db::establish_connection();
 
     embedding::table

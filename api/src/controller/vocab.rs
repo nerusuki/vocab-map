@@ -10,7 +10,7 @@ async fn get(req: HttpRequest) -> impl Responder {
         return HttpResponse::Unauthorized().json(response::message("Unauthorized"));
     };
 
-    let Ok(words) = vocab::get_user(user_id) else {
+    let Ok(words) = vocab::get_user(user_id).await else {
         return HttpResponse::InternalServerError().json(response::message("Could not find words"));
     };
 
@@ -22,7 +22,7 @@ async fn get_projected(req: HttpRequest) -> impl Responder {
         return HttpResponse::Unauthorized().json(response::message("Unauthorized"));
     };
 
-    let Ok(result) = vocab::get_user_projected(user_id) else {
+    let Ok(result) = vocab::get_user_projected(user_id).await else {
         return HttpResponse::InternalServerError().json(response::message("Could not find words"));
     };
 
@@ -36,7 +36,7 @@ async fn add(req: HttpRequest) -> impl Responder {
         return HttpResponse::Unauthorized().json(response::message("Unauthorized"));
     };
 
-    let Ok(result) = vocab::add_user(&word, user_id) else {
+    let Ok(result) = vocab::add_user(&word, user_id).await else {
         return HttpResponse::InternalServerError().json(response::message("Could not add word"));
     };
 
@@ -55,7 +55,7 @@ async fn add_from_words(params: web::Json<Words>, req: HttpRequest) -> impl Resp
         return HttpResponse::Unauthorized().json(response::message("Unauthorized"));
     };
 
-    let result = match vocab::add_user_from_words(words, user_id) {
+    let result = match vocab::add_user_from_words(words, user_id).await {
         Ok(result) => result,
         Err(e) => return HttpResponse::InternalServerError().json(response::message(e)),
     };
@@ -70,7 +70,7 @@ async fn delete_words(params: web::Json<Words>, req: HttpRequest) -> impl Respon
         return HttpResponse::Unauthorized().json(response::message("Unauthorized"));
     };
 
-    let result = match vocab::delete_user_words(words, user_id) {
+    let result = match vocab::delete_user_words(words, user_id).await {
         Ok(result) => result,
         Err(e) => return HttpResponse::InternalServerError().json(response::message(e)),
     };
@@ -81,7 +81,7 @@ async fn delete_words(params: web::Json<Words>, req: HttpRequest) -> impl Respon
 async fn search(req: HttpRequest) -> impl Responder {
     let word: String = req.match_info().load().unwrap();
 
-    let Ok(words) = vocab::search(&word) else {
+    let Ok(words) = vocab::search(&word).await else {
         return HttpResponse::InternalServerError().json(response::message("Could not find words"));
     };
 
