@@ -1,15 +1,17 @@
 use crate::models::User;
-use crate::{repository, util};
+use crate::{repository, service, util};
 
 use jwt::SignWithKey;
 use std::collections::BTreeMap;
 
-pub async fn auth(username: &str, password: &str) -> Result<String, &'static str> {
-    let user = repository::User::get_by_name(username).await?;
+impl service::User {
+    pub async fn auth(username: &str, password: &str) -> Result<String, &'static str> {
+        let user = repository::User::get_by_name(username).await?;
 
-    Ok(create_token(user)
-        .sign_with_key(&util::token::get_key())
-        .unwrap())
+        Ok(create_token(user)
+            .sign_with_key(&util::token::get_key())
+            .unwrap())
+    }
 }
 
 fn create_token(user: User) -> BTreeMap<&'static str, String> {
