@@ -8,7 +8,7 @@ use linfa_tsne::TSneParams;
 use ndarray::Array2;
 
 pub async fn get_user(user_id: i32) -> Result<Vec<String>, &'static str> {
-    let words = repository::vocab::get_by_user(user_id).await?;
+    let words = repository::Vocab::get_by_user(user_id).await?;
     Ok(words.into_iter().map(|vocab| vocab.word).collect())
 }
 
@@ -20,7 +20,7 @@ pub struct ProjectedWord {
 }
 
 pub async fn get_user_projected(user_id: i32) -> Result<Vec<ProjectedWord>, &'static str> {
-    let words = repository::embedding::get_by_user(user_id).await?;
+    let words = repository::Embedding::get_by_user(user_id).await?;
 
     let word_count = words.len();
 
@@ -60,8 +60,8 @@ pub async fn get_user_projected(user_id: i32) -> Result<Vec<ProjectedWord>, &'st
 }
 
 pub async fn add_user(word: &str, user_id: i32) -> Result<&'static str, &'static str> {
-    let word = repository::vocab::get_by_word(word).await?;
-    repository::vocab::add_to_user(word.id, user_id).await?;
+    let word = repository::Vocab::get_by_word(word).await?;
+    repository::Vocab::add_to_user(word.id, user_id).await?;
     Ok("Word added successfully")
 }
 
@@ -69,12 +69,12 @@ pub async fn add_user_from_words(words: Vec<String>, user_id: i32) -> Result<Str
     let mut words_to_add = service::embedding::predict_from_words(words, 1, false, user_id).await?;
     let word_to_add = words_to_add.pop().unwrap();
 
-    let word = match repository::vocab::get_by_word(&word_to_add).await {
+    let word = match repository::Vocab::get_by_word(&word_to_add).await {
         Ok(word) => word,
-        Err(_) => repository::vocab::insert(&word_to_add, Language::En).await?,
+        Err(_) => repository::Vocab::insert(&word_to_add, Language::En).await?,
     };
 
-    repository::vocab::add_to_user(word.id, user_id).await?;
+    repository::Vocab::add_to_user(word.id, user_id).await?;
 
     Ok(word_to_add)
 }
@@ -83,16 +83,16 @@ pub async fn delete_user_words(
     words: Vec<String>,
     user_id: i32,
 ) -> Result<&'static str, &'static str> {
-    let words = repository::vocab::get_by_words(&words).await?;
+    let words = repository::Vocab::get_by_words(&words).await?;
     let word_ids = words.iter().map(|word| word.id).collect::<Vec<i32>>();
 
-    repository::vocab::delete_from_user(&word_ids, user_id).await?;
+    repository::Vocab::delete_from_user(&word_ids, user_id).await?;
 
     Ok("Words deleted successfully")
 }
 
 pub async fn search(search: &str) -> Result<Vec<String>, &'static str> {
-    let words = repository::vocab::search(search, 20).await?;
+    let words = repository::Vocab::search(search, 20).await?;
     let words = words.into_iter().map(|vocab| vocab.word).collect();
 
     Ok(words)

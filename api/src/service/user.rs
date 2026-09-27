@@ -5,7 +5,7 @@ use jwt::SignWithKey;
 use std::collections::BTreeMap;
 
 pub async fn auth(username: &str, password: &str) -> Result<String, &'static str> {
-    let user = repository::user::get_by_name(username).await?;
+    let user = repository::User::get_by_name(username).await?;
 
     Ok(create_token(user)
         .sign_with_key(&util::token::get_key())
