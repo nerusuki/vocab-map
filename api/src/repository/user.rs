@@ -1,18 +1,20 @@
 use crate::models::User;
+use crate::repository;
+use crate::repository::Repository;
 use crate::schema::user;
-use crate::{db, repository};
 
 use diesel::prelude::*;
-use diesel::{RunQueryDsl, SelectableHelper};
+use diesel_async::RunQueryDsl;
 
 impl repository::User {
-    pub async fn get_by_name(name: &str) -> Result<User, &'static str> {
-        let connection = &mut db::establish_connection();
+    pub async fn get_by_name(&self, name: &str) -> Result<User, &'static str> {
+        let conn = &mut self.get_conn().await;
 
         user::table
             .filter(user::name.eq(name))
             .select(User::as_select())
-            .first(connection)
+            .first(conn)
+            .await
             .or(Err("User not found"))
     }
 }

@@ -1,22 +1,21 @@
-use crate::{repository, service};
+use crate::service;
 
 impl service::Embedding {
     pub async fn predict_from_word(
+        &self,
         word: &str,
         count: i64,
         vocab_only: bool,
     ) -> Result<Vec<String>, &str> {
-        let embedding = repository::Embedding::get_by_word(word).await?;
-        return repository::Embedding::get_closest_words(
-            embedding.vector.as_slice(),
-            count,
-            vocab_only,
-            None,
-        )
-        .await;
+        let embedding = self.repo.get_by_word(word).await?;
+        return self
+            .repo
+            .get_closest_words(embedding.vector.as_slice(), count, vocab_only, None)
+            .await;
     }
 
     pub async fn predict_from_words(
+        &self,
         words: Vec<String>,
         count: i64,
         vocab_only: bool,
@@ -25,13 +24,15 @@ impl service::Embedding {
         let mut vecs = vec![];
 
         for word in words.iter() {
-            let embedding = repository::Embedding::get_by_word(word).await?;
+            let embedding = self.repo.get_by_word(word).await?;
             vecs.push(embedding.vector.to_vec());
         }
 
         let sum = sum_vecs(&vecs);
 
-        return repository::Embedding::get_closest_words(&sum, count, vocab_only, Some(user_id))
+        return self
+            .repo
+            .get_closest_words(&sum, count, vocab_only, Some(user_id))
             .await;
     }
 }

@@ -1,13 +1,27 @@
-use diesel::prelude::*;
+use diesel_async::{
+    AsyncPgConnection,
+    pooled_connection::{
+        AsyncDieselConnectionManager,
+        deadpool::{Object, Pool},
+    },
+};
 use dotenvy::dotenv;
 use std::env;
 
-pub fn establish_connection() -> PgConnection {
+pub type DbPool = Pool<AsyncPgConnection>;
+pub type DbConn = Object<AsyncPgConnection>;
+
+pub fn create_connection_pool() -> DbPool {
     dotenv().ok();
 
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    PgConnection::establish(&database_url)
-        .unwrap_or_else(|_| panic!("Error connecting to {}", database_url))
+    let config = AsyncDieselConnectionManager::<AsyncPgConnection>::new(database_url);
+    let pool = Pool::builder(config)
+        .max_size(20)
+        .build()
+        .expect("Unable to create connection pool");
+
+    pool
 }
 
 #[derive(Debug, diesel_derive_enum::DbEnum)]
