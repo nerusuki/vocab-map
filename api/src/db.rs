@@ -6,6 +6,7 @@ use diesel_async::{
     },
 };
 use dotenvy::dotenv;
+use serde::Deserialize;
 use std::env;
 
 pub type DbPool = Pool<AsyncPgConnection>;
@@ -24,7 +25,7 @@ pub fn create_connection_pool() -> DbPool {
     pool
 }
 
-#[derive(Debug, diesel_derive_enum::DbEnum)]
+#[derive(Clone, Copy, Debug, Deserialize, diesel_derive_enum::DbEnum)]
 #[db_enum(existing_type_path = "crate::schema::sql_types::Language")]
 pub enum Language {
     En,

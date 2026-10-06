@@ -1,4 +1,4 @@
-use crate::service;
+use crate::{db::Language, service};
 
 impl service::Embedding {
     pub async fn predict_from_word(
@@ -6,11 +6,12 @@ impl service::Embedding {
         word: &str,
         count: i64,
         vocab_only: bool,
+        lang: Option<Language>,
     ) -> Result<Vec<String>, &str> {
         let embedding = self.repo.get_by_word(word).await?;
         return self
             .repo
-            .get_closest_words(embedding.vector.as_slice(), count, vocab_only, None)
+            .get_closest_words(embedding.vector.as_slice(), count, vocab_only, None, lang)
             .await;
     }
 
@@ -20,6 +21,7 @@ impl service::Embedding {
         count: i64,
         vocab_only: bool,
         user_id: i32,
+        lang: Option<Language>,
     ) -> Result<Vec<String>, &'static str> {
         let mut vecs = vec![];
 
@@ -32,7 +34,7 @@ impl service::Embedding {
 
         return self
             .repo
-            .get_closest_words(&sum, count, vocab_only, Some(user_id))
+            .get_closest_words(&sum, count, vocab_only, Some(user_id), lang)
             .await;
     }
 }

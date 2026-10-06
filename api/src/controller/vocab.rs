@@ -1,3 +1,4 @@
+use crate::db::Language;
 use crate::util::response;
 use crate::util::token::get_user_id;
 use crate::{db::DbPool, service};
@@ -8,43 +9,63 @@ use actix_web::{
 };
 use serde::Deserialize;
 
-async fn get(ThinData(pool): ThinData<DbPool>, req: HttpRequest) -> impl Responder {
+#[derive(Deserialize)]
+struct LangParam {
+    lang: Option<Language>,
+}
+
+async fn get(
+    ThinData(pool): ThinData<DbPool>,
+    req: HttpRequest,
+    params: web::Query<LangParam>,
+) -> impl Responder {
     let vocab_service = service::Vocab::new(pool);
+    let LangParam { lang } = params.into_inner();
 
     let Some(user_id) = get_user_id(req.headers()) else {
         return HttpResponse::Unauthorized().json(response::message("Unauthorized"));
     };
 
-    let Ok(words) = vocab_service.get_user(user_id).await else {
+    let Ok(words) = vocab_service.get_user(user_id, lang).await else {
         return HttpResponse::InternalServerError().json(response::message("Could not find words"));
     };
 
     HttpResponse::Ok().json(words)
 }
 
-async fn get_projected(ThinData(pool): ThinData<DbPool>, req: HttpRequest) -> impl Responder {
+async fn get_projected(
+    ThinData(pool): ThinData<DbPool>,
+    req: HttpRequest,
+    params: web::Query<LangParam>,
+) -> impl Responder {
     let vocab_service = service::Vocab::new(pool);
+    let LangParam { lang } = params.into_inner();
 
     let Some(user_id) = get_user_id(req.headers()) else {
         return HttpResponse::Unauthorized().json(response::message("Unauthorized"));
     };
 
-    let Ok(result) = vocab_service.get_user_projected(user_id).await else {
+    let Ok(result) = vocab_service.get_user_projected(user_id, lang).await else {
         return HttpResponse::InternalServerError().json(response::message("Could not find words"));
     };
 
     HttpResponse::Ok().json(result)
 }
 
-async fn add(ThinData(pool): ThinData<DbPool>, req: HttpRequest) -> impl Responder {
+async fn add(
+    ThinData(pool): ThinData<DbPool>,
+    req: HttpRequest,
+    params: web::Query<LangParam>,
+) -> impl Responder {
     let vocab_service = service::Vocab::new(pool);
     let word: String = req.match_info().load().unwrap();
+    let LangParam { lang } = params.into_inner();
 
     let Some(user_id) = get_user_id(req.headers()) else {
         return HttpResponse::Unauthorized().json(response::message("Unauthorized"));
     };
 
-    let Ok(result) = vocab_service.add_user(&word, user_id).await else {
+    let Ok(result) = vocab_service.add_user(&word, user_id, lang).await else {
         return HttpResponse::InternalServerError().json(response::message("Could not add word"));
     };
 
@@ -54,6 +75,7 @@ async fn add(ThinData(pool): ThinData<DbPool>, req: HttpRequest) -> impl Respond
 #[derive(Deserialize)]
 struct Words {
     words: Vec<String>,
+    lang: Option<Language>,
 }
 
 async fn add_from_words(
@@ -62,13 +84,16 @@ async fn add_from_words(
     req: HttpRequest,
 ) -> impl Responder {
     let vocab_service = service::Vocab::new(pool);
-    let words = params.into_inner().words;
+    let Words { words, lang } = params.into_inner();
 
     let Some(user_id) = get_user_id(req.headers()) else {
         return HttpResponse::Unauthorized().json(response::message("Unauthorized"));
     };
 
-    let result = match vocab_service.add_user_from_words(words, user_id).await {
+    let result = match vocab_service
+        .add_user_from_words(words, user_id, lang)
+        .await
+    {
         Ok(result) => result,
         Err(e) => return HttpResponse::InternalServerError().json(response::message(e)),
     };
@@ -82,13 +107,13 @@ async fn delete_words(
     req: HttpRequest,
 ) -> impl Responder {
     let vocab_service = service::Vocab::new(pool);
-    let words = params.into_inner().words;
+    let Words { words, lang } = params.into_inner();
 
     let Some(user_id) = get_user_id(req.headers()) else {
         return HttpResponse::Unauthorized().json(response::message("Unauthorized"));
     };
 
-    let result = match vocab_service.delete_user_words(words, user_id).await {
+    let result = match vocab_service.delete_user_words(words, user_id, lang).await {
         Ok(result) => result,
         Err(e) => return HttpResponse::InternalServerError().json(response::message(e)),
     };
@@ -96,11 +121,16 @@ async fn delete_words(
     HttpResponse::Ok().json(response::message(result))
 }
 
-async fn search(ThinData(pool): ThinData<DbPool>, req: HttpRequest) -> impl Responder {
+async fn search(
+    ThinData(pool): ThinData<DbPool>,
+    req: HttpRequest,
+    params: web::Query<LangParam>,
+) -> impl Responder {
     let vocab_service = service::Vocab::new(pool);
     let word: String = req.match_info().load().unwrap();
+    let LangParam { lang } = params.into_inner();
 
-    let Ok(words) = vocab_service.search(&word).await else {
+    let Ok(words) = vocab_service.search(&word, lang).await else {
         return HttpResponse::InternalServerError().json(response::message("Could not find words"));
     };
 

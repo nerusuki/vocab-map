@@ -19,38 +19,62 @@ impl repository::Vocab {
             .or(Err("Could not insert vocab"))
     }
 
-    pub async fn get_by_user(&self, user_id: i32) -> Result<Vec<Vocab>, &'static str> {
+    pub async fn get_by_user(
+        &self,
+        user_id: i32,
+        lang: Option<Language>,
+    ) -> Result<Vec<Vocab>, &'static str> {
         let conn = &mut self.get_conn().await;
 
-        vocab::table
+        let mut query = vocab::table
             .inner_join(user_vocab::table.on(vocab::id.eq(user_vocab::vocab)))
             .filter(user_vocab::user.eq(user_id))
             .select(Vocab::as_select())
-            .load(conn)
-            .await
-            .or(Err("Could not load vocab"))
+            .into_boxed();
+
+        if let Some(lang) = lang {
+            query = query.filter(vocab::lang.eq(lang));
+        }
+
+        query.load(conn).await.or(Err("Could not load vocab"))
     }
 
-    pub async fn get_by_word(&self, word: &str) -> Result<Vocab, &'static str> {
+    pub async fn get_by_word(
+        &self,
+        word: &str,
+        lang: Option<Language>,
+    ) -> Result<Vocab, &'static str> {
         let conn = &mut self.get_conn().await;
 
-        vocab::table
+        let mut query = vocab::table
             .filter(vocab::word.eq(word))
             .select(Vocab::as_select())
-            .first(conn)
-            .await
-            .or(Err("Could not find word"))
+            .into_boxed();
+
+        if let Some(lang) = lang {
+            query = query.filter(vocab::lang.eq(lang));
+        }
+
+        query.first(conn).await.or(Err("Could not find word"))
     }
 
-    pub async fn get_by_words(&self, words: &[String]) -> Result<Vec<Vocab>, &'static str> {
+    pub async fn get_by_words(
+        &self,
+        words: &[String],
+        lang: Option<Language>,
+    ) -> Result<Vec<Vocab>, &'static str> {
         let conn = &mut self.get_conn().await;
 
-        vocab::table
+        let mut query = vocab::table
             .filter(vocab::word.eq_any(words))
             .select(Vocab::as_select())
-            .load(conn)
-            .await
-            .or(Err("Could not find words"))
+            .into_boxed();
+
+        if let Some(lang) = lang {
+            query = query.filter(vocab::lang.eq(lang));
+        }
+
+        query.load(conn).await.or(Err("Could not find words"))
     }
 
     pub async fn add_to_user(&self, word_id: i32, user_id: i32) -> Result<usize, &'static str> {
@@ -78,15 +102,24 @@ impl repository::Vocab {
             .or(Err("Could not delete words"));
     }
 
-    pub async fn search(&self, search: &str, limit: i64) -> Result<Vec<Vocab>, &'static str> {
+    pub async fn search(
+        &self,
+        search: &str,
+        limit: i64,
+        lang: Option<Language>,
+    ) -> Result<Vec<Vocab>, &'static str> {
         let conn = &mut self.get_conn().await;
 
-        return vocab::table
+        let mut query = vocab::table
             .filter(vocab::word.ilike(format!("{}%", search)))
             .limit(limit)
             .select(Vocab::as_select())
-            .load(conn)
-            .await
-            .or(Err("Could not load vocab"));
+            .into_boxed();
+
+        if let Some(lang) = lang {
+            query = query.filter(vocab::lang.eq(lang));
+        }
+
+        query.load(conn).await.or(Err("Could not load vocab"))
     }
 }

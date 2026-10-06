@@ -1,3 +1,4 @@
+use crate::db::Language;
 use crate::models::Embedding;
 use crate::repository;
 use crate::repository::Repository;
@@ -25,6 +26,7 @@ impl repository::Embedding {
         count: i64,
         vocab_only: bool,
         user_id: Option<i32>,
+        lang: Option<Language>,
     ) -> Result<Vec<String>, &'static str> {
         let conn = &mut self.get_conn().await;
 
@@ -48,19 +50,31 @@ impl repository::Embedding {
             query = query.filter(user_vocab::user.is_null());
         }
 
+        if let Some(lang) = lang {
+            query = query.filter(vocab::lang.eq(lang));
+        }
+
         query.load(conn).await.or(Err("Could not find words"))
     }
 
-    pub async fn get_by_user(&self, user_id: i32) -> Result<Vec<Embedding>, &'static str> {
+    pub async fn get_by_user(
+        &self,
+        user_id: i32,
+        lang: Option<Language>,
+    ) -> Result<Vec<Embedding>, &'static str> {
         let conn = &mut self.get_conn().await;
 
-        embedding::table
+        let mut query = embedding::table
             .inner_join(vocab::table.on(embedding::word.eq(vocab::word)))
             .inner_join(user_vocab::table.on(vocab::id.eq(user_vocab::vocab)))
             .filter(user_vocab::user.eq(user_id))
             .select(Embedding::as_select())
-            .load(conn)
-            .await
-            .or(Err("Could not load vocab"))
+            .into_boxed();
+
+        if let Some(lang) = lang {
+            query = query.filter(vocab::lang.eq(lang));
+        }
+
+        query.load(conn).await.or(Err("Could not load vocab"))
     }
 }
