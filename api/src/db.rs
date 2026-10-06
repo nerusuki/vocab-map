@@ -29,4 +29,6 @@ pub fn create_connection_pool() -> DbPool {
 #[db_enum(existing_type_path = "crate::schema::sql_types::Language")]
 pub enum Language {
     En,
+    Ja,
+    Pt,
 }
