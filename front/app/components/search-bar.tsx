@@ -2,10 +2,11 @@
 
 import type React from "react";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { Search } from "lucide-react";
 import { Input } from "~/components/ui/input";
 import axios from "axios";
+import { LanguageSelect } from "./language-select.client";
 
 interface SearchBarProps {
   onAddWord: (word: string) => void;
@@ -50,8 +51,12 @@ export function SearchBar({ onAddWord }: SearchBarProps) {
   };
 
   return (
-    <div className="border-b bg-card px-6 py-4">
-      <form onSubmit={handleSubmit} className="max-w-2xl mx-auto relative">
+    <div className="border-b bg-card px-6 py-4 flex">
+      <Suspense>
+        <LanguageSelect />
+      </Suspense>
+
+      <form onSubmit={handleSubmit} className="w-2xl mx-auto relative">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input

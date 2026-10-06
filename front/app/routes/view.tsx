@@ -12,6 +12,7 @@ import { Button } from "~/components/ui/button";
 import { BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import { Toaster } from "~/components/ui/sonner";
+import { useLanguage } from "~/components/language-select.client";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSession(request.headers.get("Cookie"));
@@ -36,6 +37,7 @@ export default function View({ loaderData }: Route.ComponentProps) {
   const [camera, setCamera] = useState({ x: 0, y: 0, zoom: 1 });
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
+  const lang = useLanguage?.();
 
   const { token } = loaderData;
 
@@ -100,6 +102,7 @@ export default function View({ loaderData }: Route.ComponentProps) {
     const response = await axios
       .get<Word[]>(import.meta.env.VITE_API_URL + "/vocab/projected", {
         headers: { Authorization: `Bearer ${token}` },
+        params: { lang },
       })
       .catch((error) => {
         console.log(error);
@@ -189,6 +192,7 @@ export default function View({ loaderData }: Route.ComponentProps) {
       {},
       {
         headers: { Authorization: `Bearer ${token}` },
+        params: { lang },
       },
     );
 
@@ -198,7 +202,7 @@ export default function View({ loaderData }: Route.ComponentProps) {
   const addWordFromSelected = async (words: string[]) => {
     const response = await axios.post(
       import.meta.env.VITE_API_URL + "/vocab/add",
-      { words },
+      { words, lang },
       {
         headers: { Authorization: `Bearer ${token}` },
       },
@@ -212,7 +216,7 @@ export default function View({ loaderData }: Route.ComponentProps) {
     if (selectedWords) {
       const response = await axios.post(
         import.meta.env.VITE_API_URL + "/vocab/delete",
-        { words: [...selectedWords] },
+        { words: [...selectedWords], lang },
         {
           headers: { Authorization: `Bearer ${token}` },
         },
