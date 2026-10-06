@@ -5,6 +5,8 @@ import { useLocalStorage } from "@uidotdev/usehooks";
 
 const LANGUAGES = {
   En: "English",
+  Ja: "日本語",
+  Pt: "Português",
 } as const;
 
 export type Language = keyof typeof LANGUAGES;
