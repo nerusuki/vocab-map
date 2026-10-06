@@ -184,7 +184,7 @@ export default function View({ loaderData }: Route.ComponentProps) {
 
   useEffect(() => {
     update();
-  }, []);
+  }, [lang]);
 
   const addWord = async (word: string) => {
     const response = await axios.put(
