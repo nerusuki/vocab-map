@@ -6,7 +6,14 @@ use std::collections::BTreeMap;
 
 impl service::User {
     pub async fn auth(&self, username: &str, password: &str) -> Result<String, &'static str> {
-        let user = self.repo.get_by_name(username).await?;
+        let user = match self.repo.get_by_name(username).await {
+            Ok(user) => user,
+            Err(_) => return Err("Invalid username/password"),
+        };
+
+        if !util::password::verify_password(password, &user.password) {
+            return Err("Invalid username/password");
+        }
 
         Ok(create_token(user)
             .sign_with_key(&util::token::get_key())
