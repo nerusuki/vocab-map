@@ -12,6 +12,7 @@ diesel-derive-enum = { version = "3.0.0-beta.1", features = ["postgres"] }
 dotenvy = "0.15.7"
 hmac = "0.12.1"
 jwt = "0.16.0"
+argon2 = "0.5"
 linfa = "0.8.0"
 linfa-tsne = "0.8.0"
 ndarray = "0.16.1"
