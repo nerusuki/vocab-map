@@ -13,8 +13,8 @@ dotenvy = "0.15.7"
 hmac = "0.12.1"
 jwt = "0.16.0"
 argon2 = "0.5"
-linfa = "0.8.0"
-linfa-tsne = "0.8.0"
+linfa = { git = "https://github.com/rust-ml/linfa.git" }
+linfa-tsne = { git = "https://github.com/rust-ml/linfa.git" }
 ndarray = "0.16.1"
 pgvector = { version = "0.4", features = ["diesel"] }
 serde = { version = "1.0.227", features = ["derive"] }
