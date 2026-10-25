@@ -8,8 +8,13 @@ mod schema;
 mod service;
 mod util;
 
+const HOST: &'static str = "localhost";
+const PORT: u16 = 8080;
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    println!("Starting API at {}:{}", HOST, PORT);
+
     let pool = db::create_connection_pool();
     let app_data = web::ThinData(pool);
 
@@ -26,7 +31,7 @@ async fn main() -> std::io::Result<()> {
             .service(controller::embedding::create_scope())
             .service(controller::vocab::create_scope())
     })
-    .bind(("localhost", 8080))?
+    .bind((HOST, PORT))?
     .run()
     .await
 }
