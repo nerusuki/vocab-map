@@ -34,7 +34,7 @@ impl service::Vocab {
             return Ok(vec![]);
         }
 
-        let dim = 300;
+        let dim = words[0].vector.as_slice().len();
         let values = words.iter().map(|x| x.vector.to_vec()).flatten().collect();
 
         let values: Array2<f32> = Array2::from_shape_vec((words.len(), dim), values).unwrap();
