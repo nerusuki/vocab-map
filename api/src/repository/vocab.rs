@@ -2,7 +2,7 @@ use crate::db::Language;
 use crate::models::Vocab;
 use crate::repository;
 use crate::repository::Repository;
-use crate::schema::{user_vocab, vocab};
+use crate::schema::{embedding, user_vocab, vocab};
 
 use diesel::dsl::{delete, insert_into};
 use diesel::prelude::*;
@@ -121,5 +121,17 @@ impl repository::Vocab {
         }
 
         query.load(conn).await.or(Err("Could not load vocab"))
+    }
+
+    pub async fn get_without_embedding(&self) -> Result<Vec<Vocab>, &'static str> {
+        let conn = &mut self.get_conn().await;
+
+        vocab::table
+            .left_join(embedding::table.on(embedding::word.eq(vocab::word)))
+            .filter(embedding::word.is_null())
+            .select(Vocab::as_select())
+            .load(conn)
+            .await
+            .or(Err("Could not load vocab"))
     }
 }

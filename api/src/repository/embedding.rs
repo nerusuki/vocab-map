@@ -4,11 +4,26 @@ use crate::repository;
 use crate::repository::Repository;
 use crate::schema::{embedding, user_vocab, vocab};
 
+use diesel::dsl::insert_into;
 use diesel::prelude::*;
+use diesel::result::Error;
 use diesel_async::RunQueryDsl;
 use pgvector::{Vector, VectorExpressionMethods};
 
 impl repository::Embedding {
+    pub async fn insert(&self, word: &str, vec: Vec<f32>) -> Result<Embedding, String> {
+        let conn = &mut self.get_conn().await;
+
+        insert_into(embedding::table)
+            .values((
+                embedding::word.eq(word),
+                embedding::vector.eq(Vector::from(vec)),
+            ))
+            .get_result(conn)
+            .await
+            .map_err(|err: Error| err.to_string())
+    }
+
     pub async fn get_by_word(&self, word: &str) -> Result<Embedding, &'static str> {
         let mut conn = self.pool.get().await.unwrap();
 

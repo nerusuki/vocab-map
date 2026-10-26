@@ -1,9 +1,11 @@
 use actix_cors::Cors;
 use actix_web::{App, HttpServer, web};
+use generator::generate_missing;
 use std::process::exit;
 
 mod controller;
 mod db;
+mod generator;
 mod models;
 mod repository;
 mod schema;
@@ -23,6 +25,7 @@ fn main() {
 
     match command.as_str() {
         "api" => api().map_err(|err| err.to_string()),
+        "generate" => generate_missing().map_err(|err| err.to_string()),
         _ => print_usage_and_exit(),
     }
     .map_err(|err| {
@@ -34,7 +37,7 @@ fn main() {
 fn print_usage_and_exit() -> ! {
     let exe = std::env::args().next().unwrap();
     println!("Usage: {} <command>", exe);
-    println!("Available commands: api");
+    println!("Available commands: api, generate");
     std::process::exit(1)
 }
 
