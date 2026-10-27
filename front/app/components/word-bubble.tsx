@@ -14,7 +14,7 @@ export function WordBubble({ word, isSelected, onClick }: WordBubbleProps) {
     <button
       onClick={onClick}
       className={cn(
-        "pointer-events-auto absolute px-6 py-3 rounded-full font-medium transition-all duration-200 cursor-pointer select-none",
+        "pointer-events-auto text-nowrap absolute px-6 py-3 rounded-full font-medium transition-all duration-200 cursor-pointer select-none",
         "hover:scale-110 active:scale-95 hover:z-20",
         isSelected
           ? "bg-primary text-primary-foreground shadow-lg scale-105 z-10"
