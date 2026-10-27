@@ -86,7 +86,7 @@ impl service::Vocab {
         let lang = lang.unwrap_or(Language::En);
 
         let mut words_to_add = embedding_service
-            .predict_from_words(words, 1, false, user_id, Some(lang))
+            .predict_from_words(words, 1, user_id, Some(lang))
             .await?;
         let word_to_add = words_to_add.pop().unwrap();
 

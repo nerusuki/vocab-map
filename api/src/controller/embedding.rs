@@ -13,17 +13,15 @@ async fn predict(ThinData(pool): ThinData<DbPool>, req: HttpRequest) -> impl Res
     #[derive(Deserialize)]
     struct Params {
         count: Option<i64>,
-        vocab: Option<String>,
         lang: Option<Language>,
     }
 
     let params = web::Query::<Params>::from_query(req.query_string()).unwrap();
     let count = params.count.unwrap_or_else(|| 30);
-    let vocab_only = params.vocab.is_some();
     let lang = params.into_inner().lang;
 
     let words = match embedding_service
-        .predict_from_word(&word, count, vocab_only, lang)
+        .predict_from_word(&word, count, lang)
         .await
     {
         Ok(words) => words,

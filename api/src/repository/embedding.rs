@@ -39,14 +39,13 @@ impl repository::Embedding {
         &self,
         vec: &[f32],
         count: i64,
-        vocab_only: bool,
         user_id: Option<i32>,
         lang: Option<Language>,
     ) -> Result<Vec<String>, &'static str> {
         let conn = &mut self.get_conn().await;
 
         let mut query = embedding::table
-            .left_join(vocab::table.on(embedding::word.ilike(vocab::word)))
+            .inner_join(vocab::table.on(embedding::word.ilike(vocab::word)))
             .left_join(
                 user_vocab::table.on(vocab::id
                     .eq(user_vocab::vocab)
@@ -56,10 +55,6 @@ impl repository::Embedding {
             .limit(count)
             .select(embedding::word)
             .into_boxed();
-
-        if vocab_only {
-            query = query.filter(vocab::id.is_not_null());
-        }
 
         if user_id.is_some() {
             query = query.filter(user_vocab::user.is_null());
