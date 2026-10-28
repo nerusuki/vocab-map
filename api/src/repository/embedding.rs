@@ -11,15 +11,22 @@ use diesel_async::RunQueryDsl;
 use pgvector::{Vector, VectorExpressionMethods};
 
 impl repository::Embedding {
-    pub async fn insert(&self, word: &str, vec: Vec<f32>) -> Result<Embedding, String> {
+    pub async fn insert(&self, values: Vec<(&str, Vec<f32>)>) -> Result<Vec<Embedding>, String> {
         let conn = &mut self.get_conn().await;
 
+        let values: Vec<_> = values
+            .into_iter()
+            .map(|(word, vec)| {
+                (
+                    embedding::word.eq(word),
+                    embedding::vector.eq(Vector::from(vec)),
+                )
+            })
+            .collect();
+
         insert_into(embedding::table)
-            .values((
-                embedding::word.eq(word),
-                embedding::vector.eq(Vector::from(vec)),
-            ))
-            .get_result(conn)
+            .values(values)
+            .get_results(conn)
             .await
             .map_err(|err: Error| err.to_string())
     }

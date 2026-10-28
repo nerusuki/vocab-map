@@ -1,5 +1,4 @@
 use fastembed::{EmbeddingModel, Error, TextEmbedding, TextInitOptions};
-use futures::future;
 
 use crate::{db::create_connection_pool, repository};
 
@@ -45,19 +44,19 @@ pub fn generate_missing() -> Result<(), &'static str> {
 
             generated += vecs.len();
 
-            let results = future::join_all(
-                word_chunk
-                    .iter()
-                    .map(|word| embedding_repo.insert(word, vecs.next().unwrap())),
-            )
-            .await;
+            let result = embedding_repo
+                .insert(
+                    word_chunk
+                        .into_iter()
+                        .map(|word| (word.as_str(), vecs.next().unwrap()))
+                        .collect(),
+                )
+                .await;
 
-            for result in results {
-                if let Err(err) = result {
-                    println!("Error: {}", err);
-                    continue;
-                };
-            }
+            if let Err(err) = result {
+                println!("Error: {}", err);
+                continue;
+            };
 
             let progress = generated as f32 / total_words as f32 * 100.0;
             println!("Progress: {} / {} = {}%", generated, total_words, progress);
