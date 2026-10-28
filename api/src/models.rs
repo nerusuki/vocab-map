@@ -32,4 +32,7 @@ pub struct Vocab {
     pub id: i32,
     pub word: String,
     pub lang: Language,
+    pub reading: Option<String>,
+    pub definition: Option<Vec<Option<String>>>,
+    pub tags: Option<Vec<Option<String>>>,
 }

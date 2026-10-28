@@ -1,0 +1,4 @@
+ALTER TABLE vocab
+ADD COLUMN reading TEXT,
+ADD COLUMN definition TEXT[],
+ADD COLUMN tags TEXT[];

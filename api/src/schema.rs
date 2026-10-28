@@ -46,6 +46,9 @@ diesel::table! {
         id -> Int4,
         word -> Varchar,
         lang -> Language,
+        reading -> Nullable<Text>,
+        definition -> Nullable<Array<Nullable<Text>>>,
+        tags -> Nullable<Array<Nullable<Text>>>,
     }
 }
 
