@@ -52,7 +52,7 @@ impl repository::Embedding {
         let conn = &mut self.get_conn().await;
 
         let mut query = embedding::table
-            .inner_join(vocab::table.on(embedding::word.ilike(vocab::word)))
+            .inner_join(vocab::table.on(embedding::word.eq(vocab::word)))
             .left_join(
                 user_vocab::table.on(vocab::id
                     .eq(user_vocab::vocab)
