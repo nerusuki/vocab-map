@@ -1,11 +1,7 @@
 use std::vec;
 
 use crate::db::Language;
-use crate::{repository, service};
-
-use linfa::traits::Transformer;
-use linfa_tsne::TSneParams;
-use ndarray::Array2;
+use crate::{repository, service, tsne};
 
 impl service::Vocab {
     pub async fn get_user(
@@ -21,7 +17,7 @@ impl service::Vocab {
         &self,
         user_id: i32,
         lang: Option<Language>,
-    ) -> Result<Vec<ProjectedWord>, &'static str> {
+    ) -> Result<Vec<ProjectedWord>, String> {
         let embedding_repository = repository::Embedding {
             pool: self.pool.clone(),
         };
@@ -34,33 +30,20 @@ impl service::Vocab {
             return Ok(vec![]);
         }
 
-        let dim = words[0].vector.as_slice().len();
-        let values = words.iter().map(|x| x.vector.to_vec()).flatten().collect();
-
-        let values: Array2<f32> = Array2::from_shape_vec((words.len(), dim), values).unwrap();
-
         let perplexity: f32 = if word_count > 1 {
             12.0 * (word_count as f32) / 250.0
         } else {
             0.0
         };
 
-        let y_2d = TSneParams::embedding_size(2)
-            .perplexity(perplexity)
-            .approx_threshold(0.3)
-            .transform(values)
-            .unwrap();
-
-        let mut result: Vec<ProjectedWord> = vec![];
-        let mut y_2d_iter = y_2d.outer_iter().into_iter();
-        for w in words {
-            let y = y_2d_iter.next().unwrap();
-            result.push(ProjectedWord {
-                word: w.word,
-                x: y[0],
-                y: y[1],
-            });
-        }
+        let result: Vec<_> = tsne::tsne2(
+            words.iter().map(|word| word.vector.to_vec()).collect(),
+            perplexity,
+        )?
+        .into_iter()
+        .zip(words.into_iter())
+        .map(|([x, y], w)| ProjectedWord { word: w.word, x, y })
+        .collect();
 
         Ok(result)
     }

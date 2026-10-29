@@ -10,6 +10,7 @@ mod models;
 mod repository;
 mod schema;
 mod service;
+mod tsne;
 mod util;
 
 const HOST: &'static str = "localhost";
