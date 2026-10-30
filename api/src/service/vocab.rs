@@ -26,15 +26,18 @@ impl service::Vocab {
 
         let word_count = words.len();
 
-        if word_count == 0 {
-            return Ok(vec![]);
+        if word_count < 3 {
+            return Ok(words
+                .into_iter()
+                .map(|w| ProjectedWord {
+                    word: w.word,
+                    x: 0.5,
+                    y: 0.5,
+                })
+                .collect());
         }
 
-        let perplexity: f32 = if word_count > 1 {
-            12.0 * (word_count as f32) / 250.0
-        } else {
-            0.0
-        };
+        let perplexity: f32 = 12.0 * (word_count as f32) / 250.0;
 
         let result: Vec<_> = tsne::tsne2(
             words.iter().map(|word| word.vector.to_vec()).collect(),
