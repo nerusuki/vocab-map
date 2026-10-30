@@ -37,7 +37,7 @@ impl service::Vocab {
                 .collect());
         }
 
-        let perplexity: f32 = 12.0 * (word_count as f32) / 250.0;
+        let perplexity: f32 = ((word_count as f32).sqrt() - 1.51) * 2.0;
 
         let result: Vec<_> = tsne::tsne2(
             words.iter().map(|word| word.vector.to_vec()).collect(),

@@ -1,6 +1,6 @@
 use bhtsne;
 
-const APPROX_THRESHOLD: f32 = 0.3;
+const APPROX_THRESHOLD: f32 = 0.5;
 const EPOCHS: usize = 2000;
 
 pub fn tsne2(vec: Vec<Vec<f32>>, perplexity: f32) -> Result<Vec<[f32; 2]>, String> {
