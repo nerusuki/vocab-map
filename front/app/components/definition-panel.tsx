@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import type { Word } from "~/routes/view";
 import { ScrollArea } from "~/components/ui/scroll-area";
 import { Loader2 } from "lucide-react";
+import { useLanguage, type Language } from "./language-select.client";
+import axios from "axios";
 
 interface DefinitionPanelProps {
   selectedWords: Word[];
@@ -21,11 +23,21 @@ interface Definition {
   }>;
 }
 
+interface Vocab {
+  id: number;
+  word: string;
+  lang: Language;
+  reading?: string;
+  definition?: string[];
+  tags: string[];
+}
+
 export function DefinitionPanel({ selectedWords }: DefinitionPanelProps) {
-  const [definitions, setDefinitions] = useState<Record<string, Definition>>(
+  const [definitions, setDefinitions] = useState<Record<string, Vocab>>(
     {},
   );
   const [loading, setLoading] = useState<Set<string>>(new Set());
+  const lang = useLanguage()
 
   useEffect(() => {
     selectedWords.forEach((word) => {
@@ -37,23 +49,24 @@ export function DefinitionPanel({ selectedWords }: DefinitionPanelProps) {
 
   const fetchDefinition = async (word: string) => {
     setLoading((prev) => new Set(prev).add(word));
-    try {
-      const response = await fetch(
-        `https://api.dictionaryapi.dev/api/v2/entries/en/${word}`,
-      );
-      if (response.ok) {
-        const data = await response.json();
+
+      const response = await axios
+        .get<Vocab[]>(import.meta.env.VITE_API_URL + "/vocab/definition/" + word, {
+          params: { lang },
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+
+      if (response) {
+        const data = response.data;
         setDefinitions((prev) => ({ ...prev, [word]: data[0] }));
       }
-    } catch (error) {
-      console.error("Failed to fetch definition:", error);
-    } finally {
       setLoading((prev) => {
         const newSet = new Set(prev);
         newSet.delete(word);
         return newSet;
       });
-    }
   };
 
   if (selectedWords.length === 0) {
@@ -80,9 +93,9 @@ export function DefinitionPanel({ selectedWords }: DefinitionPanelProps) {
                   <h3 className="text-xl font-semibold text-foreground">
                     {word.word}
                   </h3>
-                  {def?.phonetic && (
+                  {def?.reading && (
                     <p className="text-sm text-muted-foreground">
-                      {def.phonetic}
+                      {def.reading}
                     </p>
                   )}
                 </div>
@@ -96,26 +109,17 @@ export function DefinitionPanel({ selectedWords }: DefinitionPanelProps) {
 
                 {def && (
                   <div className="space-y-4">
-                    {def.meanings.slice(0, 2).map((meaning, idx) => (
+                    {def.definition?.map((definition, idx) => (
                       <div key={idx} className="space-y-2">
                         <p className="text-xs font-medium text-primary uppercase">
-                          {meaning.partOfSpeech}
+                          {def.word}
                         </p>
                         <div className="space-y-2">
-                          {meaning.definitions
-                            .slice(0, 2)
-                            .map((def, defIdx) => (
-                              <div key={defIdx} className="space-y-1">
-                                <p className="text-sm text-foreground leading-relaxed">
-                                  {def.definition}
-                                </p>
-                                {def.example && (
-                                  <p className="text-xs text-muted-foreground italic pl-3 border-l-2 border-muted">
-                                    "{def.example}"
-                                  </p>
-                                )}
-                              </div>
-                            ))}
+                          <div className="space-y-1">
+                            <p className="text-sm text-foreground leading-relaxed">
+                              {definition}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     ))}
