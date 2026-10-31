@@ -1,9 +1,17 @@
-use std::vec;
-
 use crate::db::Language;
+use crate::models::Vocab;
 use crate::{repository, service, tsne};
 
 impl service::Vocab {
+    pub async fn get(
+        &self,
+        words: &[String],
+        lang: Option<Language>,
+    ) -> Result<Vec<Vocab>, &'static str> {
+        let vocabs = self.repo.get_by_words(words, lang).await?;
+        Ok(vocabs)
+    }
+
     pub async fn get_user(
         &self,
         user_id: i32,

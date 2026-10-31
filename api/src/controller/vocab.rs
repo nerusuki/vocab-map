@@ -33,6 +33,22 @@ async fn get(
     HttpResponse::Ok().json(words)
 }
 
+async fn get_definition(
+    ThinData(pool): ThinData<DbPool>,
+    req: HttpRequest,
+    params: web::Query<LangParam>,
+) -> impl Responder {
+    let vocab_service = service::Vocab::new(pool);
+    let word: String = req.match_info().load().unwrap();
+    let LangParam { lang } = params.into_inner();
+
+    let Ok(words) = vocab_service.get(&[word], lang).await else {
+        return HttpResponse::InternalServerError().json(response::message("Could not find word"));
+    };
+
+    HttpResponse::Ok().json(words)
+}
+
 async fn get_projected(
     ThinData(pool): ThinData<DbPool>,
     req: HttpRequest,
@@ -140,6 +156,7 @@ async fn search(
 pub fn create_scope() -> Scope {
     web::scope("/vocab")
         .route("", web::get().to(get))
+        .route("/definition/{word}", web::get().to(get_definition))
         .route("/projected", web::get().to(get_projected))
         .route("/add/{word}", web::put().to(add))
         .route("/add", web::post().to(add_from_words))

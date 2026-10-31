@@ -4,6 +4,7 @@ use crate::schema;
 use diesel::Selectable;
 use diesel::prelude::*;
 use pgvector::Vector;
+use serde::Serialize;
 
 #[derive(Queryable, Selectable)]
 #[diesel(table_name = schema::embedding)]
@@ -27,7 +28,7 @@ pub struct User {
 #[derive(Queryable, Selectable)]
 #[diesel(table_name = schema::vocab)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-#[derive(Debug)]
+#[derive(Serialize, Debug)]
 pub struct Vocab {
     pub id: i32,
     pub word: String,
