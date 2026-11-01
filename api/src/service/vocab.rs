@@ -1,7 +1,7 @@
 use std::vec;
 
 use crate::db::Language;
-use crate::{repository, service, tsne};
+use crate::{projection, repository, service};
 
 impl service::Vocab {
     pub async fn get_user(
@@ -39,7 +39,7 @@ impl service::Vocab {
 
         let perplexity: f32 = ((word_count as f32).sqrt() - 1.51) * 2.0;
 
-        let result: Vec<_> = tsne::tsne2(
+        let result: Vec<_> = projection::tsne2(
             words.iter().map(|word| word.vector.to_vec()).collect(),
             perplexity,
         )?

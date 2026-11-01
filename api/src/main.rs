@@ -7,10 +7,10 @@ mod controller;
 mod db;
 mod generator;
 mod models;
+mod projection;
 mod repository;
 mod schema;
 mod service;
-mod tsne;
 mod util;
 
 const HOST: &'static str = "localhost";
