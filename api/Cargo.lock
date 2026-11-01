@@ -3,31 +3,6 @@
 version = 4
 
 [[package]]
-name = "actix-api"
-version = "0.1.0"
-dependencies = [
- "actix-cors",
- "actix-web",
- "argon2",
- "bhtsne",
- "diesel",
- "diesel-async",
- "diesel-derive-enum",
- "dotenvy",
- "fastembed",
- "futures",
- "hmac",
- "jwt",
- "ndarray 0.16.1",
- "pgvector",
- "serde",
- "serde_json",
- "sha2",
- "tokio",
- "tokio-stream",
-]
-
-[[package]]
 name = "actix-codec"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3788,6 +3763,31 @@ name = "version_check"
 version = "0.9.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
+
+[[package]]
+name = "vocab_map_api"
+version = "0.1.0"
+dependencies = [
+ "actix-cors",
+ "actix-web",
+ "argon2",
+ "bhtsne",
+ "diesel",
+ "diesel-async",
+ "diesel-derive-enum",
+ "dotenvy",
+ "fastembed",
+ "futures",
+ "hmac",
+ "jwt",
+ "ndarray 0.16.1",
+ "pgvector",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tokio",
+ "tokio-stream",
+]
 
 [[package]]
 name = "want"
