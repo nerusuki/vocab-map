@@ -3,7 +3,7 @@ use bhtsne;
 const APPROX_THRESHOLD: f32 = 0.5;
 const EPOCHS: usize = 2000;
 
-pub fn tsne2(vec: Vec<Vec<f32>>, perplexity: f32) -> Result<Vec<[f32; 2]>, String> {
+pub fn tsne<const D: usize>(vec: Vec<Vec<f32>>, perplexity: f32) -> Result<Vec<[f32; D]>, String> {
     let len = vec.len();
     if len == 0 {
         return Err("Empty vec".to_string());
@@ -17,7 +17,7 @@ pub fn tsne2(vec: Vec<Vec<f32>>, perplexity: f32) -> Result<Vec<[f32; 2]>, Strin
         .barnes_hut(APPROX_THRESHOLD, self::l2_distance)
         .embedding();
 
-    let result: Vec<[f32; 2]> = unsafe { result.as_chunks_unchecked::<2>().to_vec() };
+    let result: Vec<[f32; D]> = unsafe { result.as_chunks_unchecked::<D>().to_vec() };
     Ok(result)
 }
 
