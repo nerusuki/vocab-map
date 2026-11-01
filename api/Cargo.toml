@@ -12,7 +12,7 @@ diesel-derive-enum = { version = "3.0.0-beta.1", features = ["postgres"] }
 dotenvy = "0.15.7"
 hmac = "0.12.1"
 jwt = "0.16.0"
-argon2 = "0.5"
+argon2 = { version = "0.5", features = ["std"] }
 linfa = { git = "https://github.com/rust-ml/linfa.git" }
 linfa-tsne = { git = "https://github.com/rust-ml/linfa.git" }
 ndarray = "0.16.1"
