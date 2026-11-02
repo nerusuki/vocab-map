@@ -1,0 +1,17 @@
+<html>
+    <head>
+        <meta content="text/html;charset=utf-8" http-equiv="Content-Type" />
+    </head>
+    <body>
+        <script type="module">
+            import init, { start_canvas } from "./pkg/vocab_map_renderer.js";
+
+            async function run() {
+                await init();
+                console.log("hello");
+                start_canvas();
+            }
+            run();
+        </script>
+    </body>
+</html>
