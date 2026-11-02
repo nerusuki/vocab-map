@@ -1,0 +1,6 @@
+[package]
+name = "vocab_map_renderer"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
