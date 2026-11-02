@@ -8,6 +8,7 @@
     "start": "react-router-serve ./build/server/index.js",
     "typecheck": "react-router typegen && tsc"
   },
+  "packageManager": "pnpm@12.16.1",
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-accordion": "1.2.2",
