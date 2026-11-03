@@ -295,6 +295,9 @@ importers:
       tailwind-merge:
         specifier: ^3.7.0
         version: 3.7.0
+      vocab_map_renderer:
+        specifier: file:../renderer/pkg
+        version: file:../renderer/pkg
       zod:
         specifier: ^4.6.7
         version: 4.6.7
@@ -326,6 +329,9 @@ importers:
       vite:
         specifier: ^8.3.6
         version: 8.3.6(@types/node@22.20.5)(jiti@2.7.0)
+      vite-plugin-wasm:
+        specifier: ^3.6.0
+        version: 3.6.0(vite@8.3.6(@types/node@22.20.5)(jiti@2.7.0))
       vite-tsconfig-paths:
         specifier: ^5.1.4
         version: 5.1.4(typescript@5.9.3)(vite@8.3.6(@types/node@22.20.5)(jiti@2.7.0))
@@ -2180,6 +2186,11 @@ packages:
     resolution: {integrity: sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==}
     engines: {node: '>= 0.8'}
 
+  vite-plugin-wasm@3.6.0:
+    resolution: {integrity: sha512-mL/QPziiIA4RAA6DkaZZzOstdwbW5jO4Vz7Zenj0wieKWBlNvIvX5L5ljum9lcUX0ShNfBgCNLKTjNkRVVqcsw==}
+    peerDependencies:
+      vite: ^2 || ^3 || ^4 || ^5 || ^6 || ^7 || ^8
+
   vite-tsconfig-paths@5.1.4:
     resolution: {integrity: sha512-cYj0LRuLV2c2sMqhqhGpaO3LretdtMn/BVX4cPLanIZuwwrkVl+lK84E/miEXkCHWXuq65rhNN4rXsBcOB3S4w==}
     peerDependencies:
@@ -2230,6 +2241,9 @@ packages:
         optional: true
       yaml:
         optional: true
+
+  vocab_map_renderer@file:../renderer/pkg:
+    resolution: {directory: ../renderer/pkg, type: directory}
 
   wrappy@1.0.2:
     resolution: {integrity: sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==}
@@ -3981,6 +3995,10 @@ snapshots:
 
   vary@1.1.2: {}
 
+  vite-plugin-wasm@3.6.0(vite@8.3.6(@types/node@22.20.5)(jiti@2.7.0)):
+    dependencies:
+      vite: 8.3.6(@types/node@22.20.5)(jiti@2.7.0)
+
   vite-tsconfig-paths@5.1.4(typescript@5.9.3)(vite@8.3.6(@types/node@22.20.5)(jiti@2.7.0)):
     dependencies:
       debug: 4.4.3
@@ -4003,6 +4021,8 @@ snapshots:
       '@types/node': 22.20.5
       fsevents: 2.3.3
       jiti: 2.7.0
+
+  vocab_map_renderer@file:../renderer/pkg: {}
 
   wrappy@1.0.2: {}
 
