@@ -13,6 +13,7 @@ import { BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import { Toaster } from "~/components/ui/sonner";
 import { useLanguage } from "~/components/language-select.client";
+import { Renderer } from "~/components/renderer";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSession(request.headers.get("Cookie"));
@@ -242,7 +243,8 @@ export default function View({ loaderData }: Route.ComponentProps) {
       <SearchBar onAddWord={addWord} />
       <Toaster />
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <Renderer className="w-full h-40" />
         <div
           className="flex-1 relative overflow-hidden touch-none"
           ref={canvasRef}

@@ -10,15 +10,19 @@ pub enum Message {
 }
 
 use iced::Element;
-use iced::widget::{button, column, text};
+use iced::Length::Fill;
+use iced::widget::{button, column, container, text};
 
 impl Counter {
     pub fn view(&self) -> Element<'_, Message> {
-        column![
+        container(column![
             button("+").on_press(Message::Increment),
             text(self.value).size(50),
             button("-").on_press(Message::Decrement),
-        ]
+            text("Hello!"),
+        ])
+        .center_x(Fill)
+        .center_y(Fill)
         .into()
     }
 
