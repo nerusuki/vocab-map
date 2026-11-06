@@ -1,6 +1,8 @@
+use iced::Theme;
 use wasm_bindgen::prelude::*;
 
 mod counter;
+mod word_map;
 
 use counter::Counter;
 
@@ -21,5 +23,7 @@ pub fn launch() {
 }
 
 fn launch_interface() -> iced::Result {
-    iced::run(Counter::update, Counter::view)
+    iced::application(Counter::default, Counter::update, Counter::view)
+        .theme(|state: &Counter| Theme::Dracula)
+        .run()
 }
