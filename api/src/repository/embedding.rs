@@ -31,13 +31,13 @@ impl repository::Embedding {
             .map_err(|err: Error| err.to_string())
     }
 
-    pub async fn get_by_word(&self, word: &str) -> Result<Embedding, &'static str> {
+    pub async fn get_by_words(&self, words: &[String]) -> Result<Vec<Embedding>, &'static str> {
         let mut conn = self.pool.get().await.unwrap();
 
         embedding::table
-            .filter(embedding::word.eq(word))
+            .filter(embedding::word.eq_any(words))
             .select(Embedding::as_select())
-            .first(&mut conn)
+            .get_results(&mut conn)
             .await
             .or(Err("Word not found"))
     }

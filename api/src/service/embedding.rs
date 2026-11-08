@@ -8,12 +8,11 @@ impl service::Embedding {
         user_id: Option<i32>,
         lang: Option<Language>,
     ) -> Result<Vec<String>, &'static str> {
-        let mut vecs = vec![];
-
-        for word in words.iter() {
-            let embedding = self.repo.get_by_word(word).await?;
-            vecs.push(embedding.vector.to_vec());
-        }
+        let embeddings = self.repo.get_by_words(&words).await?;
+        let vecs = embeddings
+            .into_iter()
+            .map(|embedding| embedding.vector.to_vec())
+            .collect::<Vec<_>>();
 
         let sum = sum_vecs(&vecs);
 
