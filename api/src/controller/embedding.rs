@@ -21,7 +21,7 @@ async fn predict(ThinData(pool): ThinData<DbPool>, req: HttpRequest) -> impl Res
     let lang = params.into_inner().lang;
 
     let words = match embedding_service
-        .predict_from_word(&word, count, lang)
+        .predict([word].to_vec(), count, None, lang)
         .await
     {
         Ok(words) => words,
