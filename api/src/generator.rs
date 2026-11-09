@@ -5,7 +5,7 @@ use crate::{db::create_connection_pool, repository};
 const MODEL: EmbeddingModel = EmbeddingModel::BGEM3;
 const CHUNK_SIZE: usize = 64;
 
-pub fn generate_from_words(words: &[String]) -> Result<Vec<Vec<f32>>, Error> {
+pub fn generate_from_words(words: &[&String]) -> Result<Vec<Vec<f32>>, Error> {
     let mut model =
         TextEmbedding::try_new(TextInitOptions::new(MODEL).with_show_download_progress(true))?;
 
@@ -31,13 +31,18 @@ pub fn generate_missing() -> Result<(), &'static str> {
 
     let mut generated = 0;
     runtime.block_on(async {
-        for word_chunk in words
+        for vocab_chunk in words
             .into_iter()
-            .map(|vocab| vocab.word)
-            .collect::<Vec<String>>()
+            .map(|vocab| (vocab.word, vocab.lang))
+            .collect::<Vec<_>>()
             .chunks(CHUNK_SIZE)
         {
-            let mut vecs = generate_from_words(word_chunk)
+            let word_chunk = vocab_chunk
+                .into_iter()
+                .map(|(word, _)| word)
+                .collect::<Vec<_>>();
+
+            let mut vecs = generate_from_words(&word_chunk)
                 .or(Err("Could not generate embeddings"))
                 .unwrap()
                 .into_iter();
@@ -46,9 +51,9 @@ pub fn generate_missing() -> Result<(), &'static str> {
 
             let result = embedding_repo
                 .insert(
-                    word_chunk
+                    vocab_chunk
                         .into_iter()
-                        .map(|word| (word.as_str(), vecs.next().unwrap()))
+                        .map(|(word, lang)| (word.as_str(), *lang, vecs.next().unwrap()))
                         .collect(),
                 )
                 .await;

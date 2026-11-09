@@ -9,10 +9,12 @@ pub mod sql_types {
 diesel::table! {
     use diesel::sql_types::*;
     use pgvector::sql_types::*;
+    use super::sql_types::Language;
 
     embedding (word) {
         word -> Varchar,
         vector -> Vector,
+        lang -> Language,
     }
 }
 

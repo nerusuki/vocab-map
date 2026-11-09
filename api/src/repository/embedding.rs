@@ -11,14 +11,18 @@ use diesel_async::RunQueryDsl;
 use pgvector::{Vector, VectorExpressionMethods};
 
 impl repository::Embedding {
-    pub async fn insert(&self, values: Vec<(&str, Vec<f32>)>) -> Result<Vec<Embedding>, String> {
+    pub async fn insert(
+        &self,
+        values: Vec<(&str, Language, Vec<f32>)>,
+    ) -> Result<Vec<Embedding>, String> {
         let conn = &mut self.get_conn().await;
 
         let values: Vec<_> = values
             .into_iter()
-            .map(|(word, vec)| {
+            .map(|(word, lang, vec)| {
                 (
                     embedding::word.eq(word),
+                    embedding::lang.eq(lang),
                     embedding::vector.eq(Vector::from(vec)),
                 )
             })
@@ -68,7 +72,7 @@ impl repository::Embedding {
         }
 
         if let Some(lang) = lang {
-            query = query.filter(vocab::lang.eq(lang));
+            query = query.filter(embedding::lang.eq(lang));
         }
 
         query.load(conn).await.or(Err("Could not find words"))

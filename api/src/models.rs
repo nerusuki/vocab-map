@@ -13,6 +13,7 @@ use serde::Serialize;
 pub struct Embedding {
     pub word: String,
     pub vector: Vector,
+    pub lang: Language,
 }
 
 #[derive(Queryable, Selectable)]
