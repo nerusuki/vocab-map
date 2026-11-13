@@ -37,7 +37,7 @@ impl service::Vocab {
         if word_count < 3 {
             return Ok(words
                 .into_iter()
-                .map(|w| ProjectedWord {
+                .map(|(w, _)| ProjectedWord {
                     word: w.word,
                     x: 0.5,
                     y: 0.5,
@@ -47,7 +47,7 @@ impl service::Vocab {
 
         let perplexity: f32 = ((word_count as f32).sqrt() - 1.51) * 2.0;
 
-        let word_list: Vec<&str> = words.iter().map(|word| word.word.as_str()).collect();
+        let word_list: Vec<&str> = words.iter().map(|(word, _)| word.word.as_str()).collect();
 
         let result: Vec<_> = projection::tsne::<2>(
             &word_list,
