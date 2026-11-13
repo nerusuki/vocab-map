@@ -1,7 +1,7 @@
 use diesel_async::{
     AsyncPgConnection,
     pooled_connection::{
-        AsyncDieselConnectionManager,
+        AsyncDieselConnectionManager, ManagerConfig, RecyclingMethod,
         deadpool::{Object, Pool},
     },
 };
@@ -16,8 +16,14 @@ pub fn create_connection_pool() -> DbPool {
     dotenv().ok();
 
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    let config = AsyncDieselConnectionManager::<AsyncPgConnection>::new(database_url);
-    let pool = Pool::builder(config)
+
+    let mut config = ManagerConfig::default();
+    config.recycling_method = RecyclingMethod::Fast;
+
+    let manager =
+        AsyncDieselConnectionManager::<AsyncPgConnection>::new_with_config(database_url, config);
+
+    let pool = Pool::builder(manager)
         .max_size(20)
         .build()
         .expect("Unable to create connection pool");
