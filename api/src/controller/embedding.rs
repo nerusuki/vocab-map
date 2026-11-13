@@ -16,14 +16,17 @@ async fn predict(ThinData(pool): ThinData<DbPool>, req: HttpRequest) -> impl Res
         lang: Option<Language>,
     }
 
+    let words = word
+        .split(',')
+        .map(|word| word.to_string())
+        .collect::<Vec<_>>()
+        .to_vec();
+
     let params = web::Query::<Params>::from_query(req.query_string()).unwrap();
     let count = params.count.unwrap_or_else(|| 30);
     let lang = params.into_inner().lang;
 
-    let words = match embedding_service
-        .predict([word].to_vec(), count, None, lang)
-        .await
-    {
+    let words = match embedding_service.predict(words, count, None, lang).await {
         Ok(words) => words,
         Err(e) => return HttpResponse::InternalServerError().json(response::message(e)),
     };
