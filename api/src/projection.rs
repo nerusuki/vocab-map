@@ -9,8 +9,9 @@ const APPROX_THRESHOLD: f32 = 0.5;
 const EPOCHS: usize = 2000;
 
 pub fn tsne<const D: usize>(
-    words: &[&str],
-    vec: Vec<Vec<f32>>,
+    //words: &[&str],
+    vec: Vec<(Vec<f32>, Option<[f32; D]>)>,
+    //initial: Option<Vec<Vec<f32>>>,
     perplexity: f32,
 ) -> Result<Vec<[f32; D]>, String> {
     let len = vec.len();
@@ -24,20 +25,14 @@ pub fn tsne<const D: usize>(
 
     tsne.perplexity(perplexity).epochs(EPOCHS);
 
-    let initial = retrieve();
-    dbg!(initial.is_ok());
+    //let initial = retrieve();
+    //dbg!(initial.is_ok());
 
-    if let Ok(initial) = initial {
+    if let Some(initial) = initial {
         dbg!(&initial);
 
-        tsne.initial_embedding(
-            initial
-                .into_iter()
-                .map(|(w, f)| f)
-                .flatten()
-                .collect::<Vec<f32>>(),
-        )
-        .stop_lying_epoch(0);
+        tsne.initial_embedding(initial.into_iter().flatten().collect::<Vec<f32>>())
+            .stop_lying_epoch(0);
     }
 
     let result = tsne

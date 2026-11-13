@@ -1,5 +1,5 @@
 use crate::db::Language;
-use crate::models::Embedding;
+use crate::models::{Embedding, UserVocab};
 use crate::repository;
 use crate::repository::Repository;
 use crate::schema::{embedding, user_vocab, vocab};
@@ -84,14 +84,14 @@ impl repository::Embedding {
         &self,
         user_id: i32,
         lang: Option<Language>,
-    ) -> Result<Vec<Embedding>, &'static str> {
+    ) -> Result<Vec<(Embedding, UserVocab)>, &'static str> {
         let conn = &mut self.get_conn().await;
 
         let mut query = embedding::table
             .inner_join(vocab::table.on(embedding::word.eq(vocab::word)))
             .inner_join(user_vocab::table.on(vocab::id.eq(user_vocab::vocab)))
             .filter(user_vocab::user.eq(user_id))
-            .select(Embedding::as_select())
+            .select((Embedding::as_select(), UserVocab::as_select()))
             .into_boxed();
 
         if let Some(lang) = lang {

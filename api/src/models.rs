@@ -38,3 +38,13 @@ pub struct Vocab {
     pub definition: Option<Vec<Option<String>>>,
     pub tags: Option<Vec<Option<String>>>,
 }
+
+#[derive(Queryable, Selectable)]
+#[diesel(table_name = schema::user_vocab)]
+#[diesel(check_for_backend(diesel::pg::Pg))]
+#[derive(Debug)]
+pub struct UserVocab {
+    pub user: i32,
+    pub vocab: i32,
+    pub projection: Option<Vec<Option<f32>>>,
+}

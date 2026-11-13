@@ -51,7 +51,8 @@ impl service::Vocab {
 
         let result: Vec<_> = projection::tsne::<2>(
             &word_list,
-            words.iter().map(|word| word.vector.to_vec()).collect(),
+            words.iter().map(|(word, _)| word.vector.to_vec()).collect(),
+            words.iter().map(|(word, _)| word.vector.to_vec()).collect(),
             perplexity,
         )?
         .into_iter()
