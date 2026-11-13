@@ -30,7 +30,11 @@ impl service::Vocab {
             pool: self.pool.clone(),
         };
 
-        let words = embedding_repository.get_by_user(user_id, lang).await?;
+        let (words, user_vocabs) = embedding_repository
+            .get_by_user(user_id, lang)
+            .await?
+            .into_iter()
+            .collect::<(Vec<_>, Vec<_>)>();
 
         let word_count = words.len();
 
@@ -47,14 +51,51 @@ impl service::Vocab {
 
         let perplexity: f32 = ((word_count as f32).sqrt() - 1.51) * 2.0;
 
-        let result: Vec<_> = projection::tsne::<2>(
-            words.iter().map(|word| word.vector.to_vec()).collect(),
-            perplexity,
-        )?
-        .into_iter()
-        .zip(words.into_iter())
-        .map(|([x, y], w)| ProjectedWord { word: w.word, x, y })
-        .collect();
+        let (word_list, vec_list): (Vec<String>, Vec<Vec<f32>>) = words
+            .into_iter()
+            .map(|word| (word.word, word.vector.to_vec()))
+            .collect();
+
+        let mut missing_initial_count: i32 = 0;
+        let initial = user_vocabs
+            .iter()
+            .map(|vocab| match &vocab.projection {
+                Some(projection) => projection.to_vec().try_into().unwrap(),
+                None => {
+                    missing_initial_count += 1;
+                    [0.5; 2]
+                }
+            })
+            .collect();
+
+        let initial = if missing_initial_count < 3 {
+            Some(initial)
+        } else {
+            None
+        };
+
+        let projected: Vec<_> = projection::tsne::<2>(vec_list, initial, perplexity)?;
+
+        self.repo
+            .update_projections(
+                user_id,
+                user_vocabs
+                    .iter()
+                    .map(|user_vocab| user_vocab.vocab)
+                    .zip(projected.iter().map(|p| p.as_slice()))
+                    .collect(),
+            )
+            .await?;
+
+        let result = projected
+            .into_iter()
+            .zip(word_list.into_iter())
+            .map(|([x, y], word)| ProjectedWord {
+                word: word.to_string(),
+                x,
+                y,
+            })
+            .collect();
 
         Ok(result)
     }

@@ -5,8 +5,11 @@ use crate::repository::Repository;
 use crate::schema::{embedding, user_vocab, vocab};
 
 use diesel::dsl::{delete, insert_into};
-use diesel::prelude::*;
+use diesel::result::Error;
+use diesel::{prelude::*, update};
 use diesel_async::RunQueryDsl;
+use futures::future;
+use pgvector::Vector;
 
 impl repository::Vocab {
     pub async fn insert(&self, word: &str, lang: Language) -> Result<Vocab, &'static str> {
@@ -100,6 +103,42 @@ impl repository::Vocab {
             .execute(conn)
             .await
             .or(Err("Could not delete words"));
+    }
+
+    pub async fn update_projection(
+        &self,
+        user_id: i32,
+        vocab_id: i32,
+        projection: Vec<f32>,
+    ) -> Result<usize, Error> {
+        let conn = &mut self.get_conn().await;
+
+        update(user_vocab::table)
+            .filter(user_vocab::user.eq(user_id))
+            .filter(user_vocab::vocab.eq(vocab_id))
+            .set(user_vocab::projection.eq(Vector::from(projection)))
+            .execute(conn)
+            .await
+    }
+
+    pub async fn update_projections(
+        &self,
+        user_id: i32,
+        projections: Vec<(i32, &[f32])>,
+    ) -> Result<(), String> {
+        let results = future::join_all(projections.iter().map(|(vocab_id, projection)| {
+            self.update_projection(user_id, *vocab_id, projection.to_vec())
+        }))
+        .await;
+
+        for result in results {
+            if let Err(err) = result {
+                println!("Error: {}", err);
+                continue;
+            };
+        }
+
+        Ok(())
     }
 
     pub async fn search(
