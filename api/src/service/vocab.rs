@@ -47,7 +47,10 @@ impl service::Vocab {
 
         let perplexity: f32 = ((word_count as f32).sqrt() - 1.51) * 2.0;
 
+        let word_list: Vec<&str> = words.iter().map(|word| word.word.as_str()).collect();
+
         let result: Vec<_> = projection::tsne::<2>(
+            &word_list,
             words.iter().map(|word| word.vector.to_vec()).collect(),
             perplexity,
         )?
