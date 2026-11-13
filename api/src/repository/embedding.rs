@@ -52,8 +52,10 @@ impl repository::Embedding {
         count: i64,
         user_id: Option<i32>,
         lang: Option<Language>,
-    ) -> Result<Vec<String>, &'static str> {
+    ) -> Result<Vec<(String, f64)>, &'static str> {
         let conn = &mut self.get_conn().await;
+
+        let distance = embedding::vector.l2_distance(Vector::from(vec.to_vec()));
 
         let mut query = embedding::table
             .inner_join(vocab::table.on(embedding::word.eq(vocab::word)))
@@ -62,9 +64,9 @@ impl repository::Embedding {
                     .eq(user_vocab::vocab)
                     .and(user_vocab::user.eq(user_id.unwrap_or(0)))),
             )
-            .order_by(embedding::vector.l2_distance(Vector::from(vec.to_vec())))
+            .order_by(&distance)
             .limit(count)
-            .select(embedding::word)
+            .select((embedding::word, &distance))
             .into_boxed();
 
         if user_id.is_some() {

@@ -7,7 +7,7 @@ impl service::Embedding {
         count: i64,
         user_id: Option<i32>,
         lang: Option<Language>,
-    ) -> Result<Vec<String>, &'static str> {
+    ) -> Result<Vec<(String, f64)>, &'static str> {
         let embeddings = self.repo.get_by_words(&words).await?;
         let vecs = embeddings
             .into_iter()

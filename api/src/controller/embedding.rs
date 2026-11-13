@@ -4,7 +4,7 @@ use crate::util::response;
 
 use actix_web::web::ThinData;
 use actix_web::{HttpRequest, HttpResponse, Responder, Scope, web};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 async fn predict(ThinData(pool): ThinData<DbPool>, req: HttpRequest) -> impl Responder {
     let embedding_service = service::Embedding::new(pool);
@@ -27,6 +27,17 @@ async fn predict(ThinData(pool): ThinData<DbPool>, req: HttpRequest) -> impl Res
         Ok(words) => words,
         Err(e) => return HttpResponse::InternalServerError().json(response::message(e)),
     };
+
+    #[derive(Serialize)]
+    struct WordDistance {
+        word: String,
+        distance: f64,
+    }
+
+    let words = words
+        .into_iter()
+        .map(|(word, distance)| WordDistance { word, distance })
+        .collect::<Vec<_>>();
 
     HttpResponse::Ok().json(words)
 }

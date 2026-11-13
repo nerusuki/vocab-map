@@ -82,7 +82,7 @@ impl service::Vocab {
         let mut words_to_add = embedding_service
             .predict(words, 1, Some(user_id), Some(lang))
             .await?;
-        let word_to_add = words_to_add.pop().unwrap();
+        let word_to_add = words_to_add.pop().unwrap().0;
 
         let word = match self.repo.get_by_word(&word_to_add, Some(lang)).await {
             Ok(word) => word,
