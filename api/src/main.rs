@@ -16,6 +16,8 @@ mod util;
 const HOST: &'static str = "localhost";
 const PORT: u16 = 8080;
 
+const COMMANDS: &'static [&str] = &["api", "generate"];
+
 fn main() {
     let mut args = std::env::args();
     args.next();
@@ -38,7 +40,7 @@ fn main() {
 fn print_usage_and_exit() -> ! {
     let exe = std::env::args().next().unwrap();
     println!("Usage: {} <command>", exe);
-    println!("Available commands: api, generate");
+    println!("Available commands: {}", COMMANDS.join(", "));
     std::process::exit(1)
 }
 
