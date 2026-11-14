@@ -13,13 +13,11 @@ dotenvy = "0.15.7"
 hmac = "0.12.1"
 jwt = "0.16.0"
 argon2 = { version = "0.5", features = ["std"] }
-ndarray = "0.16.1"
 pgvector = { version = "0.4", features = ["diesel"] }
 serde = { version = "1.0.227", features = ["derive"] }
 serde_json = "1.0.145"
 sha2 = "0.10.9"
 tokio = "1.54.1"
-tokio-stream = "0.1.19"
 futures = "0.3.34"
 fastembed = "7.5.0"
 bhtsne = "0.7.13"
