@@ -1,10 +1,10 @@
 use actix_cors::Cors;
 use actix_web::{App, HttpServer, web};
-use generator::generate_missing;
 use std::process::exit;
 
 mod controller;
 mod db;
+#[cfg(feature = "generate")]
 mod generator;
 mod models;
 mod projection;
@@ -16,7 +16,11 @@ mod util;
 const HOST: &'static str = "localhost";
 const PORT: u16 = 8080;
 
-const COMMANDS: &'static [&str] = &["api", "generate"];
+const COMMANDS: &'static [&str] = &[
+    "api",
+    #[cfg(feature = "generate")]
+    "generate",
+];
 
 fn main() {
     let mut args = std::env::args();
@@ -28,7 +32,8 @@ fn main() {
 
     match command.as_str() {
         "api" => api().map_err(|err| err.to_string()),
-        "generate" => generate_missing().map_err(|err| err.to_string()),
+        #[cfg(feature = "generate")]
+        "generate" => generator::generate_missing().map_err(|err| err.to_string()),
         _ => print_usage_and_exit(),
     }
     .map_err(|err| {
