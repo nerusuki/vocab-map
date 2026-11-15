@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use crate::db::{DbConn, DbPool};
 
 mod embedding;
@@ -49,6 +51,13 @@ trait Repository {
     fn get_pool(&self) -> &DbPool;
 
     async fn get_conn(&self) -> DbConn {
-        self.get_pool().get().await.unwrap()
+        let now = Instant::now();
+
+        let conn = self.get_pool().get().await.unwrap();
+
+        let elapsed_time = now.elapsed();
+        println!("get_conn() took {} ms", elapsed_time.as_millis());
+
+        conn
     }
 }
