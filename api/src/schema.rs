@@ -49,6 +49,7 @@ diesel::table! {
     user_vocab (user, vocab) {
         user -> Int4,
         vocab -> Int4,
+        projection -> Nullable<Vector>,
     }
 }
 

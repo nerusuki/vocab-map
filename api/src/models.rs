@@ -1,3 +1,5 @@
+use std::iter::Map;
+
 use crate::db::Language;
 use crate::schema;
 

@@ -84,14 +84,14 @@ impl repository::Embedding {
         &self,
         user_id: i32,
         lang: Option<Language>,
-    ) -> Result<Vec<(Embedding, UserVocab)>, &'static str> {
+    ) -> Result<Vec<(i32, Embedding)>, &'static str> {
         let conn = &mut self.get_conn().await;
 
         let mut query = embedding::table
             .inner_join(vocab::table.on(embedding::word.eq(vocab::word)))
             .inner_join(user_vocab::table.on(vocab::id.eq(user_vocab::vocab)))
             .filter(user_vocab::user.eq(user_id))
-            .select((Embedding::as_select(), UserVocab::as_select()))
+            .select((user_vocab::vocab, Embedding::as_select()))
             .into_boxed();
 
         if let Some(lang) = lang {

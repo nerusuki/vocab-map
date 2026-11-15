@@ -30,14 +30,13 @@ impl repository::Projection {
             .or(Err("Could not insert vocab"))
     }
 
-    pub async fn get(&self, user_id: i32, lang: Language) -> Option<Projection> {
+    pub async fn get_projection(&self, user_id: i32, lang: Language) -> Option<serde_json::Value> {
         let conn = &mut self.get_conn().await;
 
         projection::table
-            //.inner_join(user_vocab::table.on(vocab::id.eq(user_vocab::vocab)))
             .filter(projection::user.eq(user_id))
             .filter(projection::lang.eq(lang))
-            .select(Projection::as_select())
+            .select(projection::projection_)
             .get_result(conn)
             .await
             .ok()
