@@ -1,3 +1,6 @@
+use actix_web::rt::Runtime;
+use serde_json::json;
+
 use crate::db::Language;
 use crate::models::Vocab;
 use crate::{projection, repository, service};
@@ -57,7 +60,7 @@ impl service::Vocab {
             .collect();
 
         let mut missing_initial_count: i32 = 0;
-        let initial = user_vocabs
+        /*let initial = user_vocabs
             .iter()
             .map(|vocab| match &vocab.projection {
                 Some(projection) => projection.to_vec().try_into().unwrap(),
@@ -72,30 +75,47 @@ impl service::Vocab {
             Some(initial)
         } else {
             None
-        };
+        };*/
+
+        let initial = None;
 
         let projected: Vec<_> = projection::tsne::<2>(vec_list, initial, perplexity)?;
 
-        self.repo
-            .update_projections(
-                user_id,
-                user_vocabs
-                    .iter()
-                    .map(|user_vocab| user_vocab.vocab)
-                    .zip(projected.iter().map(|p| p.as_slice()))
-                    .collect(),
-            )
-            .await?;
+        /*self.repo
+        .update_projection(
+            user_id,
+            user_vocabs
+                .iter()
+                .map(|user_vocab| user_vocab.vocab)
+                .zip(projected.iter().map(|p| p.as_slice()))
+                .collect(),
+        )
+        .await
+        .unwrap();*/
+
+        if let Some(lang) = lang {
+            let projection_repository = repository::Projection {
+                pool: self.pool.clone(),
+            };
+            //let projected = projected.clone();
+            let json = json!(&projected);
+            actix_web::rt::spawn(async move {
+                projection_repository.insert(user_id, lang, json).await.ok();
+                println!("Inserted!!!!!");
+            });
+        };
 
         let result = projected
-            .into_iter()
+            .iter()
             .zip(word_list.into_iter())
             .map(|([x, y], word)| ProjectedWord {
                 word: word.to_string(),
-                x,
-                y,
+                x: *x,
+                y: *y,
             })
             .collect();
+
+        println!("Returning");
 
         Ok(result)
     }

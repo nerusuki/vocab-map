@@ -46,5 +46,14 @@ pub struct Vocab {
 pub struct UserVocab {
     pub user: i32,
     pub vocab: i32,
-    pub projection: Option<Vector>,
+}
+
+#[derive(Queryable, Selectable)]
+#[diesel(table_name = schema::projection)]
+#[diesel(check_for_backend(diesel::pg::Pg))]
+#[derive(Debug)]
+pub struct Projection {
+    pub user: i32,
+    pub lang: Language,
+    pub projection_: serde_json::Value,
 }

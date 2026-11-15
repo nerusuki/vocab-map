@@ -3,6 +3,7 @@ use std::time::Instant;
 use crate::db::{DbConn, DbPool};
 
 mod embedding;
+mod projection;
 mod user;
 mod vocab;
 
@@ -11,6 +12,16 @@ pub struct Embedding {
 }
 
 impl Repository for Embedding {
+    fn get_pool(&self) -> &DbPool {
+        &self.pool
+    }
+}
+
+pub struct Projection {
+    pub pool: DbPool,
+}
+
+impl Repository for Projection {
     fn get_pool(&self) -> &DbPool {
         &self.pool
     }
