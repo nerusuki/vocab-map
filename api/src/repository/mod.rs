@@ -42,7 +42,12 @@ trait Repository {
     async fn get_conn(&self) -> DbConn {
         let now = Instant::now();
 
-        let conn = self.get_pool().get().await.unwrap();
+        let pool = self.get_pool();
+        let status = pool.status();
+
+        println!("{:?}", status);
+
+        let conn = pool.get().await.unwrap();
 
         let elapsed_time = now.elapsed();
         println!("get_conn() took {} ms", elapsed_time.as_millis());

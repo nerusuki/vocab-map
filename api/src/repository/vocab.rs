@@ -1,14 +1,19 @@
-use crate::db::Language;
-use crate::models::Vocab;
+use std::pin::Pin;
+
+use crate::db::{DbConn, Language};
+use crate::models::{UserVocab, Vocab};
 use crate::repository;
 use crate::repository::Repository;
 use crate::schema::{embedding, user_vocab, vocab};
 
-use diesel::dsl::{delete, insert_into};
+use diesel::dsl::{delete, insert_into, update};
+use diesel::prelude::*;
 use diesel::result::Error;
-use diesel::{prelude::*, update};
-use diesel_async::RunQueryDsl;
-use futures::future;
+use diesel_async::{AsyncConnection, AsyncPgConnection, RunQueryDsl};
+use futures::StreamExt;
+use futures::future::{join_all, try_join_all};
+use futures::stream::{BufferUnordered, FuturesUnordered, futures_unordered};
+//use futures::future;
 use pgvector::Vector;
 
 impl repository::Vocab {
@@ -105,37 +110,46 @@ impl repository::Vocab {
             .or(Err("Could not delete words"));
     }
 
-    pub async fn update_projection(
-        &self,
-        user_id: i32,
-        vocab_id: i32,
-        projection: Vec<f32>,
-    ) -> Result<usize, Error> {
-        let conn = &mut self.get_conn().await;
-
-        update(user_vocab::table)
-            .filter(user_vocab::user.eq(user_id))
-            .filter(user_vocab::vocab.eq(vocab_id))
-            .set(user_vocab::projection.eq(Vector::from(projection)))
-            .execute(conn)
-            .await
-    }
-
     pub async fn update_projections(
         &self,
         user_id: i32,
         projections: Vec<(i32, &[f32])>,
     ) -> Result<(), String> {
-        let results = future::join_all(projections.iter().map(|(vocab_id, projection)| {
-            self.update_projection(user_id, *vocab_id, projection.to_vec())
-        }))
-        .await;
+        let conn = &mut self.get_conn().await;
+
+        fn update_projection(
+            user_id: i32,
+            vocab_id: i32,
+            projection: Vec<f32>,
+            mut conn: &AsyncPgConnection,
+        ) -> Pin<Box<dyn Future<Output = Result<usize, Error>> + '_>> {
+            println!("Running update!");
+
+            update(user_vocab::table)
+                .filter(user_vocab::user.eq(user_id))
+                .filter(user_vocab::vocab.eq(vocab_id))
+                .set(user_vocab::projection.eq(Vector::from(projection)))
+                .execute(&mut conn)
+        }
+
+        let results: Vec<_> =
+            FuturesUnordered::from_iter(projections.iter().map(|(vocab_id, projection)| {
+                update_projection(user_id, *vocab_id, projection.to_vec(), &mut &conn)
+                //self.update_projection(user_id, *vocab_id, projection.to_vec())
+
+                /*update(user_vocab::table)
+                .filter(user_vocab::user.eq(user_id))
+                .filter(user_vocab::vocab.eq(vocab_id))
+                .set(user_vocab::projection.eq(Vector::from(projection.to_vec())))
+                .execute(&mut conn)
+                .await*/
+            }))
+            .collect()
+            .await;
 
         for result in results {
-            if let Err(err) = result {
-                println!("Error: {}", err);
-                continue;
-            };
+            println!("Getting result");
+            result.map_err(|err| err.to_string())?;
         }
 
         Ok(())
