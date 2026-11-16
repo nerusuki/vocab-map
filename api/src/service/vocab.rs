@@ -30,15 +30,20 @@ impl service::Vocab {
             pool: self.pool.clone(),
         };
 
-        let words = embedding_repository.get_by_user(user_id, lang).await?;
+        let (words, vecs) = embedding_repository
+            .get_by_user(user_id, lang)
+            .await?
+            .into_iter()
+            .map(|embedding| (embedding.word, embedding.vector.to_vec()))
+            .collect::<(Vec<_>, Vec<_>)>();
 
         let word_count = words.len();
 
         if word_count < 3 {
             return Ok(words
                 .into_iter()
-                .map(|w| ProjectedWord {
-                    word: w.word,
+                .map(|word| ProjectedWord {
+                    word,
                     x: 0.5,
                     y: 0.5,
                 })
@@ -47,14 +52,11 @@ impl service::Vocab {
 
         let perplexity: f32 = ((word_count as f32).sqrt() - 1.51) * 2.0;
 
-        let result: Vec<_> = projection::tsne::<2>(
-            words.iter().map(|word| word.vector.to_vec()).collect(),
-            perplexity,
-        )?
-        .into_iter()
-        .zip(words.into_iter())
-        .map(|([x, y], w)| ProjectedWord { word: w.word, x, y })
-        .collect();
+        let result = projection::tsne::<2>(vecs, perplexity)?
+            .into_iter()
+            .zip(words.into_iter())
+            .map(|([x, y], word)| ProjectedWord { word, x, y })
+            .collect();
 
         Ok(result)
     }
