@@ -21,6 +21,19 @@ diesel::table! {
 diesel::table! {
     use diesel::sql_types::*;
     use pgvector::sql_types::*;
+    use super::sql_types::Language;
+
+    projection (user, lang) {
+        user -> Int4,
+        lang -> Language,
+        #[sql_name = "projection"]
+        projection_ -> Jsonb,
+    }
+}
+
+diesel::table! {
+    use diesel::sql_types::*;
+    use pgvector::sql_types::*;
 
     user (id) {
         id -> Int4,
@@ -54,7 +67,8 @@ diesel::table! {
     }
 }
 
+diesel::joinable!(projection -> user (user));
 diesel::joinable!(user_vocab -> user (user));
 diesel::joinable!(user_vocab -> vocab (vocab));
 
-diesel::allow_tables_to_appear_in_same_query!(embedding, user, user_vocab, vocab,);
+diesel::allow_tables_to_appear_in_same_query!(embedding, projection, user, user_vocab, vocab,);
