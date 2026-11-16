@@ -29,13 +29,16 @@ impl service::Vocab {
         let embedding_repository = repository::Embedding {
             pool: self.pool.clone(),
         };
+        let projection_repository = repository::Projection {
+            pool: self.pool.clone(),
+        };
 
-        let (words, vecs) = embedding_repository
+        let (ids, words, vecs) = embedding_repository
             .get_by_user(user_id, lang)
             .await?
             .into_iter()
-            .map(|embedding| (embedding.word, embedding.vector.to_vec()))
-            .collect::<(Vec<_>, Vec<_>)>();
+            .map(|(id, embedding)| (id, embedding.word, embedding.vector.to_vec()))
+            .collect::<(Vec<_>, Vec<_>, Vec<_>)>();
 
         let word_count = words.len();
 
@@ -52,7 +55,24 @@ impl service::Vocab {
 
         let perplexity: f32 = ((word_count as f32).sqrt() - 1.51) * 2.0;
 
-        let result = projection::tsne::<2>(vecs, perplexity)?
+        let initial = match lang {
+            Some(lang) => projection_repository
+                .get_projection(user_id, lang)
+                .await
+                .map(|json| projection::from_json_map(&ids, json)),
+            None => None,
+        };
+
+        let projected = projection::tsne::<2>(vecs, initial, perplexity)?;
+
+        if let Some(lang) = lang {
+            let json = projection::to_json_map(&ids, &projected);
+            actix_web::rt::spawn(async move {
+                projection_repository.insert(user_id, lang, json).await.ok();
+            });
+        };
+
+        let result = projected
             .into_iter()
             .zip(words.into_iter())
             .map(|([x, y], word)| ProjectedWord { word, x, y })
