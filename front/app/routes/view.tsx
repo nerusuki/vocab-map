@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { WordBubble } from "~/components/word-bubble";
 import { SearchBar } from "~/components/search-bar";
 import { DefinitionPanel } from "~/components/definition-panel";
@@ -13,6 +13,7 @@ import { BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import { Toaster } from "~/components/ui/sonner";
 import { useLanguage } from "~/components/language-select.client";
+import { Viewport } from "~/components/viewport";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSession(request.headers.get("Cookie"));
@@ -35,58 +36,9 @@ const WORD_AREA = 180 * 180;
 export default function View({ loaderData }: Route.ComponentProps) {
   const [words, setWords] = useState<Word[]>([]);
   const [selectedWords, setSelectedWords] = useState<Set<string>>(new Set());
-  const canvasRef = useRef<HTMLDivElement>(null);
-  const [camera, setCamera] = useState({ x: 0, y: 0, zoom: 1 });
-  const [isPanning, setIsPanning] = useState(false);
-  const [panStart, setPanStart] = useState({ x: 0, y: 0 });
   const lang = useLanguage?.();
 
   const { token } = loaderData;
-
-  useEffect(() => {
-    const handleWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      const zoomSpeed = 0.001;
-      const delta = -e.deltaY * zoomSpeed;
-
-      setCamera((prev) => {
-        const zoom = Math.max(0.5, Math.min(3, prev.zoom + delta));
-        return {
-          ...prev,
-          x: e.clientX - (e.clientX - prev.x) * (zoom / prev.zoom),
-          y: e.clientY - (e.clientY - prev.y) * (zoom / prev.zoom),
-          zoom,
-        };
-      });
-    };
-
-    const canvas = canvasRef.current;
-    if (canvas) {
-      canvas.addEventListener("wheel", handleWheel, { passive: false });
-      return () => canvas.removeEventListener("wheel", handleWheel);
-    }
-  }, []);
-
-  const handlePointerDown = (e: React.MouseEvent) => {
-    if (e.button === 0 && e.target === canvasRef.current) {
-      setIsPanning(true);
-      setPanStart({ x: e.clientX - camera.x, y: e.clientY - camera.y });
-    }
-  };
-
-  const handlePointerMove = (e: React.MouseEvent) => {
-    if (isPanning) {
-      setCamera((prev) => ({
-        ...prev,
-        x: e.clientX - panStart.x,
-        y: e.clientY - panStart.y,
-      }));
-    }
-  };
-
-  const handlePointerUp = () => {
-    setIsPanning(false);
-  };
 
   const toggleWordSelection = (wordId: string) => {
     setSelectedWords((prev) => {
@@ -240,34 +192,16 @@ export default function View({ loaderData }: Route.ComponentProps) {
       <Toaster />
 
       <div className="flex flex-1 overflow-hidden">
-        <div
-          className="flex-1 relative overflow-hidden touch-none"
-          ref={canvasRef}
-          onPointerUp={handlePointerUp}
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerLeave={handlePointerUp}
-          style={{ cursor: isPanning ? "grabbing" : "grab" }}
-        >
-          <div
-            style={{
-              pointerEvents: "none",
-              transform: `translate(${camera.x}px, ${camera.y}px) scale(${camera.zoom})`,
-              transformOrigin: "0 0",
-              width: "100%",
-              height: "100%",
-            }}
-          >
-            {words.map((word) => (
-              <WordBubble
-                key={word.word}
-                word={word}
-                isSelected={selectedWords.has(word.word)}
-                onClick={() => toggleWordSelection(word.word)}
-              />
-            ))}
-          </div>
-        </div>
+        <Viewport>
+          {words.map((word) => (
+            <WordBubble
+              key={word.word}
+              word={word}
+              isSelected={selectedWords.has(word.word)}
+              onClick={() => toggleWordSelection(word.word)}
+            />
+          ))}
+        </Viewport>
 
         <DefinitionPanel
           selectedWords={words.filter((w) => selectedWords.has(w.word))}
