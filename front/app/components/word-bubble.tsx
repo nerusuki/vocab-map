@@ -21,8 +21,8 @@ export function WordBubble({ word, isSelected, onClick }: WordBubbleProps) {
           : "bg-muted text-muted-foreground hover:bg-muted/80",
       )}
       style={{
-        left: `${word.x}px`,
-        top: `${word.y}px`,
+        left: `${word.x * 100}%`,
+        top: `${word.y * 100}%`,
       }}
     >
       {word.word}

@@ -66,51 +66,30 @@ export default function View({ loaderData }: Route.ComponentProps) {
       const words = response.data;
       const canvasSize = Math.sqrt(WORD_AREA * words.length);
 
-      const smallestX = words.reduce(
-        (prev, cur) => (cur.x < prev ? cur.x : prev),
-        0xffffffff,
-      );
-      const smallestY = words.reduce(
-        (prev, cur) => (cur.y < prev ? cur.y : prev),
-        0xffffffff,
-      );
-
-      if (smallestX < 0) {
-        words.forEach((word) => {
-          word.x -= smallestX;
-        });
-      }
-
-      if (smallestY < 0) {
-        words.forEach((word) => {
-          word.y -= smallestY;
-        });
-      }
-
-      let biggestX = words.reduce(
-        (prev, cur) => (cur.x > prev ? cur.x : prev),
-        -0xffffffff,
-      );
-      let biggestY = words.reduce(
-        (prev, cur) => (cur.y > prev ? cur.y : prev),
-        -0xffffffff,
-      );
+      const minX = Math.min(...words.map((word) => word.x));
+      const minY = Math.min(...words.map((word) => word.y));
 
       words.forEach((word) => {
-        word.x /= biggestX;
-        word.x *= canvasSize;
+        word.x -= minX;
+        word.y -= minY;
       });
-      words.forEach((word) => {
-        word.y /= biggestY;
-        word.y *= canvasSize;
-      });
+
+      const maxX = Math.max(...words.map((word) => Math.abs(word.x)));
+      const maxY = Math.max(...words.map((word) => Math.abs(word.y)));
+
+      if (maxX > 0 && maxY > 0) {
+        words.forEach((word) => {
+          word.x /= maxX;
+          word.y /= maxY;
+        });
+      }
 
       words.forEach((word1) => {
         words.forEach((word2) => {
           const dx = word2.x - word1.x;
           const dy = word2.y - word1.y;
           const distance = Math.sqrt(dx * dx + dy * dy);
-          const minDistance = 100;
+          const minDistance = 100 / canvasSize;
 
           if (distance < minDistance) {
             const angle = Math.atan2(dy, dx);
@@ -195,8 +174,9 @@ export default function View({ loaderData }: Route.ComponentProps) {
       <div className="flex flex-1 overflow-hidden">
         <Viewport>
           <div
-            className="absolute"
+            className="absolute aspect-square transition-all duration-200"
             style={{
+              width: canvasSize,
               left: `calc(50% - ${canvasSize / 2}px)`,
               top: `calc(50% - ${canvasSize / 2}px)`,
             }}
