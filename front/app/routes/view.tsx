@@ -37,6 +37,7 @@ export default function View({ loaderData }: Route.ComponentProps) {
   const [words, setWords] = useState<Word[]>([]);
   const [selectedWords, setSelectedWords] = useState<Set<string>>(new Set());
   const lang = useLanguage?.();
+  const canvasSize = Math.sqrt(WORD_AREA * words.length);
 
   const { token } = loaderData;
 
@@ -193,14 +194,22 @@ export default function View({ loaderData }: Route.ComponentProps) {
 
       <div className="flex flex-1 overflow-hidden">
         <Viewport>
-          {words.map((word) => (
-            <WordBubble
-              key={word.word}
-              word={word}
-              isSelected={selectedWords.has(word.word)}
-              onClick={() => toggleWordSelection(word.word)}
-            />
-          ))}
+          <div
+            className="absolute"
+            style={{
+              left: `calc(50% - ${canvasSize / 2}px)`,
+              top: `calc(50% - ${canvasSize / 2}px)`,
+            }}
+          >
+            {words.map((word) => (
+              <WordBubble
+                key={word.word}
+                word={word}
+                isSelected={selectedWords.has(word.word)}
+                onClick={() => toggleWordSelection(word.word)}
+              />
+            ))}
+          </div>
         </Viewport>
 
         <DefinitionPanel
