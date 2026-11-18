@@ -30,6 +30,8 @@ export interface Word {
   y: number;
 }
 
+const WORD_AREA = 180 * 180;
+
 export default function View({ loaderData }: Route.ComponentProps) {
   const [words, setWords] = useState<Word[]>([]);
   const [selectedWords, setSelectedWords] = useState<Set<string>>(new Set());
@@ -109,12 +111,7 @@ export default function View({ loaderData }: Route.ComponentProps) {
       });
     if (response) {
       const words = response.data;
-
-      const canvasSizeMultiplier = 1 + Math.sqrt(words.length) / 10;
-      const canvasWidth =
-        (canvasRef.current?.clientWidth || 1000) * canvasSizeMultiplier - 150;
-      const canvasHeight =
-        (canvasRef.current?.clientHeight || 600) * canvasSizeMultiplier - 50;
+      const canvasSize = Math.sqrt(WORD_AREA * words.length);
 
       const smallestX = words.reduce(
         (prev, cur) => (cur.x < prev ? cur.x : prev),
@@ -148,11 +145,11 @@ export default function View({ loaderData }: Route.ComponentProps) {
 
       words.forEach((word) => {
         word.x /= biggestX;
-        word.x *= canvasWidth;
+        word.x *= canvasSize;
       });
       words.forEach((word) => {
         word.y /= biggestY;
-        word.y *= canvasHeight;
+        word.y *= canvasSize;
       });
 
       words.forEach((word1) => {
