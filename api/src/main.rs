@@ -13,7 +13,11 @@ mod schema;
 mod service;
 mod util;
 
-const HOST: &'static str = "localhost";
+const HOST: &'static str = if cfg!(debug_assertions) {
+    "localhost"
+} else {
+    "0.0.0.0"
+};
 const PORT: u16 = 8080;
 
 const COMMANDS: &'static [&str] = &[
