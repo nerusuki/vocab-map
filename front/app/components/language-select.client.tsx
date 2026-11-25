@@ -3,7 +3,7 @@
 import { Select, SelectContent, SelectItem, SelectTrigger } from "./ui/select";
 import { useLocalStorage } from "@uidotdev/usehooks";
 
-const LANGUAGES = {
+export const LANGUAGES = {
   En: "English",
   Ja: "日本語",
   Pt: "Português",
@@ -11,10 +11,12 @@ const LANGUAGES = {
 
 export type Language = keyof typeof LANGUAGES;
 
-const LANGUAGE_OPTIONS = (Object.keys(LANGUAGES) as Language[]).map((key) => ({
-  value: key,
-  label: LANGUAGES[key],
-}));
+export const LANGUAGE_OPTIONS = (Object.keys(LANGUAGES) as Language[]).map(
+  (key) => ({
+    value: key,
+    label: LANGUAGES[key],
+  }),
+);
 
 const STORAGE_KEY = "language";
 const DEFAULT_LANGUAGE: Language = "En";

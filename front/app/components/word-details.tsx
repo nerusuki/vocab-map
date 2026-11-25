@@ -1,8 +1,16 @@
 "use client";
 
-import { use } from "react";
-import { useLanguage, type Language } from "./language-select.client";
+import { use, useState } from "react";
+import {
+  LANGUAGE_OPTIONS,
+  LANGUAGES,
+  useLanguage,
+  type Language,
+} from "./language-select.client";
 import axios from "axios";
+import { Button } from "./ui/button";
+import { LanguagesIcon } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger } from "./ui/select";
 
 interface Vocab {
   id: number;
@@ -48,11 +56,16 @@ export function WordDetails({ word }: { word: string }) {
 
   return (
     <div className="space-y-3">
-      <div>
-        <h3 className="text-xl font-semibold text-foreground">{word}</h3>
-        {vocab.reading && (
-          <p className="text-sm text-muted-foreground">{vocab.reading}</p>
-        )}
+      <div className="flex justify-between">
+        <div>
+          <h3 className="text-xl font-semibold text-foreground">{word}</h3>
+          {vocab.reading && (
+            <p className="text-sm text-muted-foreground">{vocab.reading}</p>
+          )}
+        </div>
+        <Button className="hover:cursor-pointer" variant="ghost">
+          <LanguagesIcon />
+        </Button>
       </div>
 
       <div className="space-y-4">
@@ -69,5 +82,27 @@ export function WordDetails({ word }: { word: string }) {
         ))}
       </div>
     </div>
+  );
+}
+
+function Translation({ word }: { word: string }) {
+  const currentLang = useLanguage?.();
+  const [lang, setLang] = useState<Language>();
+
+  return (
+    <Select value={lang} onValueChange={(value: Language) => setLang(value)}>
+      <SelectTrigger>
+        {lang ? <b>{LANGUAGES[lang]}</b> : "Select a language"}
+      </SelectTrigger>
+      <SelectContent>
+        {LANGUAGE_OPTIONS.filter(({ value }) => value !== currentLang).map(
+          ({ value, label }) => (
+            <SelectItem key={value} value={value}>
+              {label}
+            </SelectItem>
+          ),
+        )}
+      </SelectContent>
+    </Select>
   );
 }
