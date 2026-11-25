@@ -192,9 +192,7 @@ export default function View({ loaderData }: Route.ComponentProps) {
           </div>
         </Viewport>
 
-        <DefinitionPanel
-          selectedWords={words.filter((w) => selectedWords.has(w.word))}
-        />
+        <DefinitionPanel words={[...selectedWords]} />
       </div>
 
       <div className="border-t bg-card px-6 py-4">

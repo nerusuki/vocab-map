@@ -1,61 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import type { Word } from "~/routes/view";
+import { Suspense } from "react";
 import { ScrollArea } from "~/components/ui/scroll-area";
 import { Loader2 } from "lucide-react";
-import { useLanguage, type Language } from "./language-select.client";
-import axios from "axios";
+import { WordDetails } from "./word-details";
 
 interface DefinitionPanelProps {
-  selectedWords: Word[];
+  words: string[];
 }
 
-interface Vocab {
-  id: number;
-  word: string;
-  lang: Language;
-  reading?: string;
-  definition?: string[];
-  tags: string[];
-}
-
-export function DefinitionPanel({ selectedWords }: DefinitionPanelProps) {
-  const [definitions, setDefinitions] = useState<Record<string, Vocab>>({});
-  const [loading, setLoading] = useState<Set<string>>(new Set());
-  const lang = useLanguage?.();
-
-  useEffect(() => {
-    selectedWords.forEach((word) => {
-      if (!definitions[word.word] && !loading.has(word.word)) {
-        fetchDefinition(word.word);
-      }
-    });
-  }, [selectedWords]);
-
-  const fetchDefinition = async (word: string) => {
-    setLoading((prev) => new Set(prev).add(word));
-
-    const response = await axios
-      .get<Vocab[]>(import.meta.env.VITE_API_URL + "/vocab/full/" + word, {
-        params: { lang },
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-
-    if (response) {
-      const data = response.data;
-      setDefinitions((prev) => ({ ...prev, [word]: data[0] }));
-    }
-    setLoading((prev) => {
-      const newSet = new Set(prev);
-      newSet.delete(word);
-      return newSet;
-    });
-  };
-
-  if (selectedWords.length === 0) {
+export function DefinitionPanel({ words }: DefinitionPanelProps) {
+  if (words.length === 0) {
     return (
       <div className="w-96 border-l bg-card p-6 flex items-center justify-center">
         <p className="text-muted-foreground text-center text-sm">
@@ -69,56 +24,22 @@ export function DefinitionPanel({ selectedWords }: DefinitionPanelProps) {
     <div className="w-96 border-l bg-card">
       <ScrollArea className="h-full">
         <div className="p-6 space-y-6">
-          {selectedWords.map((word) => {
-            const def = definitions[word.word];
-            const isLoading = loading.has(word.word);
-
-            return (
-              <div key={word.word} className="space-y-3">
-                <div>
-                  <h3 className="text-xl font-semibold text-foreground">
-                    {word.word}
-                  </h3>
-                  {def?.reading && (
-                    <p className="text-sm text-muted-foreground">
-                      {def.reading}
-                    </p>
-                  )}
-                </div>
-
-                {isLoading && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span className="text-sm">Loading definition...</span>
-                  </div>
-                )}
-
-                {def && (
-                  <div className="space-y-4">
-                    {def.definition?.slice(0, 4).map((definition, idx) => (
-                      <div key={idx} className="space-y-2">
-                        <div className="space-y-2">
-                          <div className="space-y-1">
-                            <p className="text-sm text-foreground leading-relaxed">
-                              {definition}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {!isLoading && !def && (
-                  <p className="text-sm text-muted-foreground">
-                    Definition not found
-                  </p>
-                )}
-              </div>
-            );
-          })}
+          {words.map((word) => (
+            <Suspense fallback={<LoadingFallback />}>
+              <WordDetails key={word} word={word} />
+            </Suspense>
+          ))}
         </div>
       </ScrollArea>
+    </div>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div className="flex items-center gap-2 text-muted-foreground">
+      <Loader2 className="h-4 w-4 animate-spin" />
+      <span className="text-sm">Loading definition...</span>
     </div>
   );
 }
